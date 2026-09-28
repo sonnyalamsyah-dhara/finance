@@ -1,0 +1,3722 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dhara - Personal & Family Finance</title>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- SheetJS (xlsx) for Multi-Sheet Excel import/export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Supabase JS Client v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.65); }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-backdrop {
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased font-sans flex flex-col md:flex-row overflow-hidden select-none">
+
+  <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 modal-backdrop transition-all duration-300">
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden fade-in relative">
+      
+      <!-- Card Header: Branding -->
+      <div class="p-6 md:p-8 text-center pb-4">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center mx-auto text-white shadow-xl shadow-indigo-500/25 mb-3">
+          <i data-lucide="wallet-cards" class="w-7 h-7"></i>
+        </div>
+        <h2 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Dhara Finance</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Akses Buku Keuangan via Supabase Auth</p>
+      </div>
+
+      <div class="p-6 md:p-8 pt-0 space-y-4">
+        <!-- Supabase Email & Password Form -->
+        <form id="form-auth-email" onsubmit="handleEmailAuth(event)" class="space-y-4">
+          <!-- User Role Selector -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">MASUK SEBAGAI:</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="selectAuthRole('Suami')" id="auth-role-suami" class="py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 dark:border-indigo-600">
+                <span>👨 Suami</span>
+              </button>
+              <button type="button" onclick="selectAuthRole('Istri')" id="auth-role-istri" class="py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
+                <span>👩 Istri</span>
+              </button>
+            </div>
+            <input type="hidden" id="auth-selected-role" value="Suami">
+          </div>
+
+          <!-- Email Input -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">EMAIL</label>
+            <div class="relative">
+              <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input id="auth-email" type="email" placeholder="nama@keluarga.com" required class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <!-- Password Input -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">KATA SANDI</label>
+            <div class="relative">
+              <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input id="auth-password" type="password" placeholder="••••••••" required class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <button type="button" onclick="togglePasswordVisibility('auth-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember me & Mode Toggle -->
+          <div class="flex items-center justify-between text-xs pt-1">
+            <label class="flex items-center gap-2 cursor-pointer text-slate-500">
+              <input type="checkbox" id="auth-remember-me" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+              <span>Ingat di HP ini</span>
+            </label>
+            <button type="button" onclick="toggleAuthMode()" id="auth-mode-toggle" class="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
+              Buat Akun Baru
+            </button>
+          </div>
+
+          <button id="auth-submit-btn" type="submit" class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs md:text-sm shadow-lg shadow-indigo-600/30 transition active:scale-[0.98] flex items-center justify-center gap-2">
+            <i data-lucide="log-in" class="w-4 h-4"></i>
+            <span id="auth-btn-label">Masuk ke Aplikasi</span>
+          </button>
+        </form>
+
+        <div id="auth-error-msg" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-medium text-center border border-rose-200 dark:border-rose-900/60 leading-relaxed"></div>
+      </div>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="hidden md:flex flex-col w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-30 transition-all duration-300">
+    <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+          <i data-lucide="wallet-cards" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">Dhara</span>
+          <span class="text-[10px] font-semibold tracking-wider uppercase block text-indigo-600 dark:text-indigo-400">FINANCE & BUDGET</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+      <button onclick="navigateTo('dashboard')" data-nav="dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span>Dashboard</span>
+      </button>
+      <button onclick="navigateTo('transactions')" data-nav="transactions" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+        <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
+        <span>Transactions</span>
+      </button>
+      <button onclick="navigateTo('accounts')" data-nav="accounts" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+        <i data-lucide="landmark" class="w-4 h-4"></i>
+        <span>Accounts</span>
+      </button>
+      <button onclick="navigateTo('budgets')" data-nav="budgets" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+        <i data-lucide="pie-chart" class="w-4 h-4"></i>
+        <span>Budgets</span>
+      </button>
+      <button onclick="navigateTo('categories')" data-nav="categories" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+        <i data-lucide="tag" class="w-4 h-4"></i>
+        <span>Categories</span>
+      </button>
+      <button onclick="navigateTo('reports')" data-nav="reports" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+        <span>Reports</span>
+      </button>
+      <button onclick="navigateTo('recurring')" data-nav="recurring" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+        <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+        <span>Recurring</span>
+      </button>
+      <button onclick="navigateTo('impexp')" data-nav="impexp" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+        <span>Import / Export</span>
+      </button>
+
+      <div class="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
+        <button onclick="navigateTo('settings')" data-nav="settings" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span>Settings</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Supabase Status Badge -->
+    <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+      <div id="storage-status-card" class="px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/50 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <span id="storage-indicator" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+          <span id="storage-status-text" class="font-medium text-slate-600 dark:text-slate-300">Local Cache</span>
+        </div>
+        <button onclick="navigateTo('settings')" class="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px] font-semibold">Config</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 dark:bg-slate-950">
+    <header class="h-16 px-4 md:px-8 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between z-20 shrink-0">
+      <div class="flex items-center gap-3">
+        <h1 id="page-title" class="text-lg md:text-xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
+        <span id="current-month-badge" class="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60"></span>
+      </div>
+
+      <div class="flex items-center gap-2 md:gap-3">
+        <!-- Active User Badge & Switcher -->
+        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-200/70 dark:border-slate-700/60 text-xs">
+          <span class="text-slate-500 hidden sm:inline">Penginput:</span>
+          <select id="header-active-user-select" onchange="setActiveDeviceUser(this.value)" class="bg-transparent font-bold text-indigo-600 dark:text-indigo-400 focus:outline-none cursor-pointer">
+            <option value="Suami">👨 Suami</option>
+            <option value="Istri">👩 Istri</option>
+            <option value="Bersama">🤝 Bersama</option>
+          </select>
+        </div>
+
+        <!-- Quick Add Transaction Button -->
+        <button onclick="openTransactionModal()" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm shadow-sm transition active:scale-95">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Add Transaction</span>
+        </button>
+
+        <!-- Dark / Light Theme Toggle -->
+        <button id="theme-toggle-btn" onclick="toggleTheme()" class="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle Theme">
+          <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Logout Action Button -->
+        <button onclick="handleLogout()" class="p-2 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition" title="Keluar / Kunci Aplikasi">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Views Container -->
+    <div id="views-container" class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-12">
+
+      <section id="view-dashboard" class="view-panel space-y-6 max-w-7xl mx-auto fade-in">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Total Balance -->
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Balance</span>
+              <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <i data-lucide="wallet" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dash-total-balance" class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Rp 0</div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                <span>Across <span id="dash-accounts-count" class="font-semibold text-slate-700 dark:text-slate-300">0</span> accounts</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Total Income -->
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Total Income</span>
+              <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dash-total-income" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">Rp 0</div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Bulan ini</p>
+            </div>
+          </div>
+
+          <!-- Total Expense -->
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">Total Expense</span>
+              <div class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                <i data-lucide="trending-down" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dash-total-expense" class="text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight">Rp 0</div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Bulan ini</p>
+            </div>
+          </div>
+
+          <!-- Budget Remaining -->
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Budget Remaining</span>
+              <div class="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+                <i data-lucide="target" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dash-budget-remaining" class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Rp 0</div>
+              <p id="dash-budget-pct-text" class="text-xs text-slate-500 dark:text-slate-400 mt-1">0% terpakai</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 class="font-bold text-base text-slate-900 dark:text-white">Cash Flow</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Arus kas masuk vs pengeluaran</p>
+              </div>
+              <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs">
+                <button onclick="setCashFlowPeriod('month')" id="btn-flow-month" class="px-3 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 shadow-xs">This Month</button>
+                <button onclick="setCashFlowPeriod('year')" id="btn-flow-year" class="px-3 py-1 rounded-lg font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400">This Year</button>
+              </div>
+            </div>
+            <div class="relative flex-1 min-h-[260px]">
+              <canvas id="cashFlowChart"></canvas>
+            </div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col">
+            <div class="mb-4">
+              <h3 class="font-bold text-base text-slate-900 dark:text-white">Expense by Category</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Distribusi pengeluaran bulan ini</p>
+            </div>
+            <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
+              <canvas id="categoryPieChart"></canvas>
+            </div>
+            <div id="category-legend" class="mt-4 space-y-1.5 text-xs max-h-32 overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+
+        <!-- Budget Progress & Upcoming & Recent Transactions Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-bold text-base text-slate-900 dark:text-white">Budget Progress</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Pemakaian kuota kategori</p>
+              </div>
+              <button onclick="navigateTo('budgets')" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Kelola</button>
+            </div>
+            <div id="dash-budget-progress-list" class="space-y-4 flex-1 overflow-y-auto max-h-80 pr-1"></div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-bold text-base text-slate-900 dark:text-white">Upcoming Payments</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Tagihan & pembayaran berulang</p>
+              </div>
+              <button onclick="navigateTo('recurring')" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Semua</button>
+            </div>
+            <div id="dash-upcoming-list" class="space-y-3 flex-1 overflow-y-auto max-h-80 pr-1"></div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-bold text-base text-slate-900 dark:text-white">Recent Transactions</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">5 transaksi terbaru</p>
+              </div>
+              <button onclick="navigateTo('transactions')" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Lihat Semua</button>
+            </div>
+            <div id="dash-recent-transactions" class="space-y-3 flex-1 overflow-y-auto max-h-80 pr-1"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-transactions" class="view-panel hidden space-y-4 max-w-7xl mx-auto fade-in">
+        <!-- Filter Card / Search Controls -->
+        <div class="p-4 md:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+          <!-- Top Row: Search Bar & Action Buttons -->
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input id="tx-search-input" oninput="debounceFilterTransactions()" type="text" placeholder="Cari transaksi, deskripsi..." class="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs md:text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <!-- Toggle Filter Button with Badge -->
+            <button onclick="toggleMobileFilterPanel()" class="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-1.5 text-xs font-semibold transition shrink-0 relative">
+              <i data-lucide="sliders-horizontal" class="w-4 h-4 text-indigo-500"></i>
+              <span class="hidden sm:inline">Filter</span>
+              <span id="active-filter-badge" class="hidden w-4 h-4 rounded-full bg-indigo-600 text-white text-[10px] items-center justify-center font-bold">0</span>
+            </button>
+
+            <!-- Export Quick Action -->
+            <button onclick="navigateTo('impexp')" class="p-2.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 shrink-0" title="Export Transactions">
+              <i data-lucide="download" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Quick Type Filter Chips -->
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 text-xs">
+            <button onclick="setTxFilterType('ALL')" id="filter-chip-all" class="chip-filter px-3 py-1.5 rounded-full font-semibold whitespace-nowrap bg-indigo-600 text-white shadow-xs transition">All</button>
+            <button onclick="setTxFilterType('EXPENSE')" id="filter-chip-expense" class="chip-filter px-3 py-1.5 rounded-full font-medium whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">🔴 Expense</button>
+            <button onclick="setTxFilterType('INCOME')" id="filter-chip-income" class="chip-filter px-3 py-1.5 rounded-full font-medium whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">🟢 Income</button>
+            <button onclick="setTxFilterType('TRANSFER')" id="filter-chip-transfer" class="chip-filter px-3 py-1.5 rounded-full font-medium whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">🟣 Transfer</button>
+          </div>
+
+          <!-- Expandable Secondary Filters -->
+          <div id="advanced-filters-panel" class="hidden pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 fade-in text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-500 mb-1">PENGINPUT</label>
+                <select id="tx-filter-inputter" onchange="applyTransactionFilters()" class="w-full py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none">
+                  <option value="ALL">Semua Penginput</option>
+                  <option value="Suami">👨 Suami</option>
+                  <option value="Istri">👩 Istri</option>
+                  <option value="Bersama">🤝 Bersama</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-500 mb-1">KATEGORI</label>
+                <select id="tx-filter-category" onchange="applyTransactionFilters()" class="w-full py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none">
+                  <option value="ALL">Semua Kategori</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-500 mb-1">AKUN / DOMPET</label>
+                <select id="tx-filter-account" onchange="applyTransactionFilters()" class="w-full py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none">
+                  <option value="ALL">Semua Akun</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Date Range Controls -->
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-2 text-xs">
+              <div class="flex items-center gap-1.5 text-slate-500 font-semibold shrink-0">
+                <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-500"></i>
+                <span>Tanggal:</span>
+              </div>
+
+              <select id="tx-filter-date-preset" onchange="handleDatePresetChange(this.value)" class="py-1.5 px-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-medium focus:outline-none">
+                <option value="THIS_MONTH" selected>Bulan Ini</option>
+                <option value="TODAY">Hari Ini</option>
+                <option value="LAST_MONTH">Bulan Lalu</option>
+                <option value="THIS_YEAR">Tahun Ini</option>
+                <option value="ALL">Semua Tanggal</option>
+                <option value="CUSTOM">Rentang Kustom</option>
+              </select>
+
+              <div class="flex items-center gap-1.5">
+                <span class="text-slate-400 text-[11px]">Dari:</span>
+                <input type="date" id="tx-filter-start-date" onchange="handleCustomDateChange()" class="py-1 px-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none text-xs">
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <span class="text-slate-400 text-[11px]">Sampai:</span>
+                <input type="date" id="tx-filter-end-date" onchange="handleCustomDateChange()" class="py-1 px-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none text-xs">
+              </div>
+
+              <button onclick="resetDateFilter()" class="py-1 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium text-[11px] transition">
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MOBILE TRANSACTIONS LIST VIEW (Cards Feed) -->
+        <div id="transactions-mobile-container" class="md:hidden space-y-2.5"></div>
+
+        <!-- DESKTOP TRANSACTIONS TABLE VIEW -->
+        <div class="hidden md:block rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs md:text-sm">
+              <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th class="py-3 px-4">Date</th>
+                  <th class="py-3 px-4">Type</th>
+                  <th class="py-3 px-4">Description</th>
+                  <th class="py-3 px-4">Category</th>
+                  <th class="py-3 px-4">Account</th>
+                  <th class="py-3 px-4">Dinput Oleh</th>
+                  <th class="py-3 px-4 text-right">Amount</th>
+                  <th class="py-3 px-4 text-center">Receipt</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="transactions-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/80"></tbody>
+            </table>
+          </div>
+          <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <span id="tx-showing-count">Showing 0 transactions</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-accounts" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Accounts & Wallets</h2>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Pantau saldo kas, rekening bank, dan dompet digital</p>
+          </div>
+          <button onclick="openAccountModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add Account</span>
+          </button>
+        </div>
+        <div id="accounts-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+      </section>
+
+      <section id="view-budgets" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Monthly Budgets</h2>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Kendalikan pengeluaran bulanan agar tidak over-budget</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <input type="month" id="budget-month-selector" onchange="renderBudgetsView()" class="py-2 px-3 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <button onclick="openBudgetModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Set Budget</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <span class="text-xs uppercase font-semibold text-slate-400">Total Budgeted</span>
+            <div id="budget-summary-total" class="text-xl font-bold text-slate-900 dark:text-white mt-1">Rp 0</div>
+          </div>
+          <div>
+            <span class="text-xs uppercase font-semibold text-slate-400">Total Used</span>
+            <div id="budget-summary-used" class="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1">Rp 0</div>
+          </div>
+          <div>
+            <span class="text-xs uppercase font-semibold text-slate-400">Net Remaining</span>
+            <div id="budget-summary-remaining" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">Rp 0</div>
+          </div>
+        </div>
+
+        <div id="budgets-category-list" class="space-y-4"></div>
+      </section>
+
+      <section id="view-categories" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Transaction Categories</h2>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Atur kategori pemasukan & pengeluaran kustom</p>
+          </div>
+          <button onclick="openCategoryModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add Category</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+              Expense Categories
+            </h3>
+            <div id="categories-expense-list" class="space-y-2"></div>
+          </div>
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              Income Categories
+            </h3>
+            <div id="categories-income-list" class="space-y-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-reports" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Financial Reports & Insights</h2>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Analisis komprehensif pemasukan, pengeluaran, dan tren</p>
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5 border border-indigo-200 dark:border-indigo-900/50">
+          <div class="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-bold text-sm mb-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>Financial Highlights & Smart Analytics</span>
+          </div>
+          <ul id="report-insights-list" class="space-y-1.5 text-xs md:text-sm text-slate-700 dark:text-slate-300"></ul>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-2">Income vs Expense (Monthly)</h3>
+            <div class="relative min-h-[280px]">
+              <canvas id="reportMonthlyChart"></canvas>
+            </div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-2">Top Spending Breakdown</h3>
+            <div class="relative min-h-[280px]">
+              <canvas id="reportCategoryChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Monthly Summary Breakdown</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs md:text-sm">
+              <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th class="py-3 px-4">Period</th>
+                  <th class="py-3 px-4 text-right">Income</th>
+                  <th class="py-3 px-4 text-right">Expense</th>
+                  <th class="py-3 px-4 text-right">Net Savings</th>
+                  <th class="py-3 px-4 text-right">Savings Rate</th>
+                </tr>
+              </thead>
+              <tbody id="report-summary-table-body" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-recurring" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Recurring Transactions & Subscriptions</h2>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Jadwal transaksi otomatis untuk tagihan langganan atau gaji</p>
+          </div>
+          <button onclick="openRecurringModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add Recurring</span>
+          </button>
+        </div>
+
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs md:text-sm">
+              <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th class="py-3 px-4">Name</th>
+                  <th class="py-3 px-4">Dinput Oleh</th>
+                  <th class="py-3 px-4">Type</th>
+                  <th class="py-3 px-4">Amount</th>
+                  <th class="py-3 px-4">Frequency</th>
+                  <th class="py-3 px-4">Account / Category</th>
+                  <th class="py-3 px-4">Next Due Date</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="recurring-table-body" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-impexp" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">Import & Export Data</h2>
+          <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Dukungan penuh file Microsoft Excel (.xlsx) dan CSV</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
+                <i data-lucide="download" class="w-5 h-5"></i>
+              </div>
+              <h3 class="font-bold text-base text-slate-900 dark:text-white">Export Financial Data</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Download laporan multi-sheet Excel yang mencakup: Transaksi lengkap (dengan nama penginput), Ringkasan Kategori, Ringkasan Bulanan, dan Saldo Akun.
+              </p>
+            </div>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <button onclick="exportToExcel()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs md:text-sm flex items-center gap-2 shadow-sm transition">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                <span>Export Multi-Sheet Excel (.xlsx)</span>
+              </button>
+              <button onclick="exportToCSV()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-xs md:text-sm flex items-center gap-2 transition">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                <span>Export CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-4">
+                <i data-lucide="upload" class="w-5 h-5"></i>
+              </div>
+              <h3 class="font-bold text-base text-slate-900 dark:text-white">Import From Excel / CSV</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Upload file data transaksi untuk di-import langsung ke database dengan verifikasi dan pratinjau otomatis.
+              </p>
+            </div>
+            <div class="mt-6">
+              <label class="cursor-pointer block w-full py-4 px-4 text-center rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 bg-slate-50 dark:bg-slate-800/40 transition">
+                <i data-lucide="file-up" class="w-6 h-6 mx-auto mb-1 text-slate-400"></i>
+                <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Pilih file XLSX atau CSV</span>
+                <input id="import-file-input" type="file" accept=".xlsx, .xls, .csv" onchange="handleFileImport(event)" class="hidden">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div id="import-preview-container" class="hidden p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">Import Preview & Validation</h3>
+              <p id="import-preview-count" class="text-xs text-slate-500"></p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="cancelImport()" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Batal</button>
+              <button onclick="commitImport()" class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs shadow-sm">Confirm & Save</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto max-h-72">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 dark:bg-slate-800 text-slate-500 font-semibold sticky top-0">
+                <tr>
+                  <th class="py-2 px-3">Date</th>
+                  <th class="py-2 px-3">Type</th>
+                  <th class="py-2 px-3">Amount</th>
+                  <th class="py-2 px-3">Category</th>
+                  <th class="py-2 px-3">Account</th>
+                  <th class="py-2 px-3">Description</th>
+                  <th class="py-2 px-3">Status</th>
+                </tr>
+              </thead>
+              <tbody id="import-preview-tbody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-settings" class="view-panel hidden space-y-6 max-w-5xl mx-auto fade-in">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">Settings & Supabase Configuration</h2>
+          <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Kelola koneksi cloud database, profil penginput bawaan, dan preferensi aplikasi</p>
+        </div>
+
+        <!-- Default Inputter Device Preference -->
+        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <i data-lucide="user-check" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">Profil Penginput Default di Perangkat Ini</h3>
+              <p class="text-xs text-slate-500">Atur siapa yang biasanya menggunakan HP/laptop ini agar setiap form otomatis terisi namanya.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-3 pt-2">
+            <select id="cfg-device-inputter" class="px-3.5 py-2 rounded-xl text-xs md:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <option value="Suami">👨 Suami (HP Suami)</option>
+              <option value="Istri">👩 Istri (HP Istri)</option>
+              <option value="Bersama">🤝 Bersama (Laptop / Komputer Rumah)</option>
+            </select>
+            <button onclick="saveDeviceInputter()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs shadow-sm transition">
+              Simpan Profil Perangkat
+            </button>
+          </div>
+        </div>
+
+        <!-- Supabase Connection Config Card -->
+        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <i data-lucide="database" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">Supabase Cloud Database</h3>
+              <p class="text-xs text-slate-500">Kredensial otomatis terhubung ke cloud Supabase untuk sinkronisasi HP Suami & Istri.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">SUPABASE URL</label>
+              <input id="cfg-supabase-url" type="text" placeholder="https://your-project.supabase.co" class="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">SUPABASE ANON KEY</label>
+              <input id="cfg-supabase-key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsIn..." class="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <div id="conn-test-status" class="text-xs font-medium text-slate-500">Status: Memeriksa koneksi...</div>
+            <div class="flex items-center gap-2">
+              <button onclick="pushSeedToSupabase()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs md:text-sm shadow-sm transition" title="Upload default accounts & categories to Supabase">
+                Upload Data Akun ke Cloud
+              </button>
+              <button onclick="saveSupabaseConfig()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm shadow-sm transition">
+                Simpan & Sambungkan
+              </button>
+              <button onclick="disconnectSupabase()" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800">
+                Gunakan Local Offline
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SQL Schema Card -->
+        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i data-lucide="terminal" class="w-4 h-4 text-indigo-500"></i>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">PostgreSQL Schema & RLS Setup (Supabase SQL Editor)</h3>
+            </div>
+            <button onclick="copySqlSchema()" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>Copy SQL</span>
+            </button>
+          </div>
+          <p class="text-xs text-slate-500">Copy kode SQL di bawah ini dan jalankan di menu <strong>SQL Editor</strong> di dashboard Supabase Anda jika tabel belum dibuat:</p>
+          <pre id="sql-schema-pre" class="p-4 rounded-xl bg-slate-900 text-slate-200 text-xs font-mono max-h-72 overflow-y-auto leading-relaxed"></pre>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h4 class="font-bold text-sm text-slate-900 dark:text-white">Reset & Demo Data</h4>
+            <p class="text-xs text-slate-500">Muat ulang data simulasi awal atau bersihkan seluruh data transaksi lokal.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="resetToSampleData()" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-semibold text-slate-700 dark:text-slate-300">Muat Sample Data</button>
+            <button onclick="promptClearAllData()" class="px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 border border-rose-200 dark:border-rose-900/60 text-xs font-semibold">Hapus Semua Data</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 flex items-center justify-around z-30 px-2">
+      <button onclick="navigateTo('dashboard')" data-mobile-nav="dashboard" class="flex flex-col items-center justify-center w-12 py-1 text-slate-500 dark:text-slate-400">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Home</span>
+      </button>
+      <button onclick="navigateTo('transactions')" data-mobile-nav="transactions" class="flex flex-col items-center justify-center w-12 py-1 text-slate-500 dark:text-slate-400">
+        <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Txns</span>
+      </button>
+
+      <!-- Center Floating Plus Button -->
+      <button onclick="openTransactionModal()" class="w-11 h-11 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 -translate-y-3 active:scale-90 transition">
+        <i data-lucide="plus" class="w-6 h-6"></i>
+      </button>
+
+      <button onclick="navigateTo('accounts')" data-mobile-nav="accounts" class="flex flex-col items-center justify-center w-12 py-1 text-slate-500 dark:text-slate-400">
+        <i data-lucide="landmark" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Accounts</span>
+      </button>
+      <button onclick="navigateTo('reports')" data-mobile-nav="reports" class="flex flex-col items-center justify-center w-12 py-1 text-slate-500 dark:text-slate-400">
+        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Reports</span>
+      </button>
+    </nav>
+  </main>
+
+  <div id="modal-transaction" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
+    <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden fade-in max-h-[90vh] flex flex-col">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" onclick="setTxModalType('EXPENSE')" id="modal-tab-expense" class="px-3 py-1.5 rounded-lg bg-rose-600 text-white transition">Expense</button>
+          <button type="button" onclick="setTxModalType('INCOME')" id="modal-tab-income" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 transition">Income</button>
+          <button type="button" onclick="setTxModalType('TRANSFER')" id="modal-tab-transfer" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 transition">Transfer</button>
+        </div>
+        <button onclick="closeTransactionModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="tx-form" onsubmit="handleSaveTransaction(event)" class="p-5 space-y-4 overflow-y-auto flex-1 text-xs md:text-sm">
+        <input type="hidden" id="tx-edit-id" value="">
+        <input type="hidden" id="tx-form-type" value="EXPENSE">
+
+        <!-- Dinput Oleh Selector -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DINPUT OLEH (PENCATAT TRANSAKSI)</label>
+          <div class="grid grid-cols-3 gap-2 mb-1.5">
+            <button type="button" onclick="setTxInputterPreset('Suami')" id="btn-tx-input-suami" class="py-1.5 rounded-lg border text-xs font-semibold transition">👨 Suami</button>
+            <button type="button" onclick="setTxInputterPreset('Istri')" id="btn-tx-input-istri" class="py-1.5 rounded-lg border text-xs font-semibold transition">👩 Istri</button>
+            <button type="button" onclick="setTxInputterPreset('Bersama')" id="btn-tx-input-bersama" class="py-1.5 rounded-lg border text-xs font-semibold transition">🤝 Bersama</button>
+          </div>
+          <input id="tx-inputted-by" type="text" placeholder="Nama penginput..." required class="w-full px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">AMOUNT (RP)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">Rp</span>
+            <input id="tx-amount" type="number" min="1" step="any" placeholder="0" required class="w-full pl-11 pr-4 py-3 rounded-xl text-lg font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DATE</label>
+          <input id="tx-date" type="date" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div id="tx-normal-fields" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">CATEGORY</label>
+              <select id="tx-category" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">ACCOUNT / WALLET</label>
+              <select id="tx-account" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+            </div>
+          </div>
+        </div>
+
+        <div id="tx-transfer-fields" class="hidden space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">FROM ACCOUNT</label>
+              <select id="tx-from-account" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">TO ACCOUNT</label>
+              <select id="tx-to-account" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DESCRIPTION</label>
+          <input id="tx-description" type="text" placeholder="e.g. Belanja mingguan, bensin, token PLN" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">ATTACHMENT / STRUK</label>
+          <div class="flex items-center gap-3">
+            <label class="cursor-pointer px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-xs font-medium flex items-center gap-1.5">
+              <i data-lucide="paperclip" class="w-4 h-4 text-slate-400"></i>
+              <span>Pilih Gambar</span>
+              <input id="tx-attachment-input" type="file" accept="image/*" onchange="handleReceiptFile(event)" class="hidden">
+            </label>
+            <div id="tx-attachment-preview" class="text-xs text-slate-500 truncate flex-1">Tidak ada file dipilih</div>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm transition">
+            Save Transaction
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-account" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
+    <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modal-account-title" class="font-bold text-base text-slate-900 dark:text-white">Add Account</h3>
+        <button onclick="closeAccountModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="account-form" onsubmit="handleSaveAccount(event)" class="space-y-4 text-xs md:text-sm">
+        <input type="hidden" id="account-edit-id" value="">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">ACCOUNT NAME</label>
+          <input id="account-name" type="text" placeholder="e.g. Bank BCA Suami, GoPay Istri" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">PEMILIK / DINPUT OLEH</label>
+          <select id="account-inputted-by" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <option value="Suami">👨 Suami</option>
+            <option value="Istri">👩 Istri</option>
+            <option value="Bersama">🤝 Bersama</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">TYPE</label>
+          <select id="account-type" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <option value="Bank">Bank Account</option>
+            <option value="Cash">Cash / Dompet Tunai</option>
+            <option value="E-Wallet">E-Wallet (GoPay, OVO, DANA)</option>
+            <option value="Savings">Savings / Investasi</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">INITIAL BALANCE (RP)</label>
+          <input id="account-initial" type="number" step="any" placeholder="0" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm transition">
+          Save Account
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-category" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
+    <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modal-category-title" class="font-bold text-base text-slate-900 dark:text-white">Add Category</h3>
+        <button onclick="closeCategoryModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="category-form" onsubmit="handleSaveCategory(event)" class="space-y-4 text-xs md:text-sm">
+        <input type="hidden" id="category-edit-id" value="">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">CATEGORY NAME</label>
+          <input id="cat-name" type="text" placeholder="e.g. Gadget, Gym, Kursus Anak" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">TYPE</label>
+          <select id="cat-type" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <option value="EXPENSE">Expense</option>
+            <option value="INCOME">Income</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">ACCENT COLOR</label>
+          <input id="cat-color" type="color" value="#6366f1" class="w-full h-10 rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm transition">
+          Save Category
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-budget" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
+    <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modal-budget-title" class="font-bold text-base text-slate-900 dark:text-white">Set Category Budget</h3>
+        <button onclick="closeBudgetModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="budget-form" onsubmit="handleSaveBudget(event)" class="space-y-4 text-xs md:text-sm">
+        <input type="hidden" id="budget-edit-id" value="">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DIBUAT OLEH</label>
+          <select id="budget-inputted-by" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <option value="Suami">👨 Suami</option>
+            <option value="Istri">👩 Istri</option>
+            <option value="Bersama">🤝 Bersama</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">CATEGORY</label>
+          <select id="budget-category" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">MONTH</label>
+          <input id="budget-month" type="month" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">LIMIT AMOUNT (RP)</label>
+          <input id="budget-amount" type="number" min="1" step="any" required placeholder="1000000" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm transition">
+          Save Budget
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-recurring" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
+    <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modal-recurring-title" class="font-bold text-base text-slate-900 dark:text-white">Add Recurring Plan</h3>
+        <button onclick="closeRecurringModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="recurring-form" onsubmit="handleSaveRecurring(event)" class="space-y-4 text-xs md:text-sm">
+        <input type="hidden" id="recurring-edit-id" value="">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">NAME</label>
+          <input id="rec-name" type="text" placeholder="e.g. Spotify, Netflix, Wifi" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DIBAYAR / DINPUT OLEH</label>
+          <select id="rec-inputted-by" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <option value="Suami">👨 Suami</option>
+            <option value="Istri">👩 Istri</option>
+            <option value="Bersama">🤝 Bersama</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">TYPE</label>
+            <select id="rec-type" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <option value="EXPENSE">Expense</option>
+              <option value="INCOME">Income</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">AMOUNT (RP)</label>
+            <input id="rec-amount" type="number" min="1" step="any" required placeholder="150000" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">CATEGORY</label>
+            <select id="rec-category" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">ACCOUNT</label>
+            <select id="rec-account" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">FREQUENCY</label>
+            <select id="rec-frequency" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <option value="MONTHLY">Monthly</option>
+              <option value="WEEKLY">Weekly</option>
+              <option value="YEARLY">Yearly</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">NEXT RUN DATE</label>
+            <input id="rec-next-date" type="date" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm transition">
+          Save Recurring Plan
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-receipt" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/80 modal-backdrop">
+    <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden fade-in">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Receipt Attachment Preview</h3>
+        <button onclick="closeReceiptModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-4 flex items-center justify-center max-h-[70vh] overflow-auto">
+        <img id="receipt-preview-img" src="" alt="Receipt" class="max-h-full max-w-full rounded-xl object-contain">
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-confirm" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
+    <div class="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in text-center">
+      <div id="confirm-icon-box" class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-3">
+        <i id="confirm-icon" data-lucide="alert-triangle" class="w-6 h-6"></i>
+      </div>
+      <h3 id="confirm-title" class="font-bold text-base text-slate-900 dark:text-white">Konfirmasi</h3>
+      <p id="confirm-msg" class="text-xs text-slate-500 mt-1 mb-5">Tindakan ini tidak dapat dibatalkan.</p>
+      <div class="flex items-center gap-3">
+        <button onclick="closeConfirmModal()" class="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Batal</button>
+        <button id="confirm-ok-btn" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white shadow-sm">Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    /* STORAGE KEYS */
+    const STORAGE_KEY = 'KASTARA_APP_STATE_V2';
+    const CFG_KEY = 'KASTARA_SUPABASE_CFG_V2';
+    const AUTH_SESSION_KEY = 'DHARA_AUTH_SESSION_V1';
+
+    // EMBEDDED SUPABASE CREDENTIALS (AUTO-CONNECTED)
+    const DEFAULT_SUPABASE_URL = 'https://xeoevhykcljwkutowvsy.supabase.co';
+    const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhlb2V2aHlrY2xqd2t1dG93dnN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1NjU0MzYsImV4cCI6MjEwNjE0MTQzNn0.Aql6H85Zv2FHwLGg1R3qKGR0hhxvWu1O5BjYhMT7-m8';
+
+    const formatIDR = (amount) => {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0
+      }).format(amount || 0);
+    };
+
+    let isRegisterMode = false;
+
+    const SUPABASE_SQL_SCHEMA = `-- DHARA DATABASE SCHEMA (POSTGRESQL / SUPABASE)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 1. ACCOUNTS TABLE
+CREATE TABLE IF NOT EXISTS accounts (
+  id TEXT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  type VARCHAR(50) NOT NULL DEFAULT 'Bank',
+  initial_balance NUMERIC(18,2) NOT NULL DEFAULT 0,
+  current_balance NUMERIC(18,2) NOT NULL DEFAULT 0,
+  icon VARCHAR(50) DEFAULT 'landmark',
+  input_by VARCHAR(50) DEFAULT 'Bersama',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. CATEGORIES TABLE
+CREATE TABLE IF NOT EXISTS categories (
+  id TEXT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  type VARCHAR(20) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
+  color VARCHAR(20) NOT NULL DEFAULT '#6366f1',
+  icon VARCHAR(50) DEFAULT 'tag',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. TRANSACTIONS TABLE
+CREATE TABLE IF NOT EXISTS transactions (
+  id TEXT PRIMARY KEY,
+  transaction_date DATE NOT NULL,
+  type VARCHAR(20) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE', 'TRANSFER')),
+  account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
+  to_account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
+  category_id TEXT REFERENCES categories(id) ON DELETE SET NULL,
+  amount NUMERIC(18,2) NOT NULL CHECK (amount > 0),
+  description TEXT NOT NULL,
+  attachment TEXT,
+  input_by VARCHAR(50) DEFAULT 'Bersama',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. BUDGETS TABLE
+CREATE TABLE IF NOT EXISTS budgets (
+  id TEXT PRIMARY KEY,
+  category_id TEXT REFERENCES categories(id) ON DELETE CASCADE,
+  month VARCHAR(7) NOT NULL,
+  amount NUMERIC(18,2) NOT NULL CHECK (amount > 0),
+  input_by VARCHAR(50) DEFAULT 'Bersama',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. RECURRING TRANSACTIONS TABLE
+CREATE TABLE IF NOT EXISTS recurring_transactions (
+  id TEXT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  type VARCHAR(20) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
+  amount NUMERIC(18,2) NOT NULL CHECK (amount > 0),
+  frequency VARCHAR(20) NOT NULL DEFAULT 'MONTHLY',
+  category_id TEXT REFERENCES categories(id) ON DELETE SET NULL,
+  account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
+  next_run_date DATE NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  input_by VARCHAR(50) DEFAULT 'Bersama',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- DISABLE ROW LEVEL SECURITY (RLS) FOR DIRECT ACCESS VIA ANON KEY
+ALTER TABLE accounts DISABLE ROW LEVEL SECURITY;
+ALTER TABLE categories DISABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE budgets DISABLE ROW LEVEL SECURITY;
+ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;
+
+-- GRANT PUBLIC/ANON ACCESS
+GRANT ALL ON TABLE accounts TO anon, authenticated, service_role;
+GRANT ALL ON TABLE categories TO anon, authenticated, service_role;
+GRANT ALL ON TABLE transactions TO anon, authenticated, service_role;
+GRANT ALL ON TABLE budgets TO anon, authenticated, service_role;
+GRANT ALL ON TABLE recurring_transactions TO anon, authenticated, service_role;
+
+-- PERFORMANCE INDEXES
+CREATE INDEX IF NOT EXISTS idx_tx_date ON transactions(transaction_date);
+CREATE INDEX IF NOT EXISTS idx_tx_type ON transactions(type);
+CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
+`;
+
+    const DEFAULT_SEED_DATA = {
+      accounts: [
+        { id: 'acc-1', name: 'Cash / Dompet Suami', type: 'Cash', initial_balance: 1250000, current_balance: 1250000, icon: 'wallet', input_by: 'Suami' },
+        { id: 'acc-2', name: 'Bank BCA Sonny', type: 'Bank', initial_balance: 8500000, current_balance: 8500000, icon: 'landmark', input_by: 'Suami' },
+        { id: 'acc-3', name: 'GoPay Istri', type: 'E-Wallet', initial_balance: 350000, current_balance: 350000, icon: 'smartphone', input_by: 'Istri' },
+        { id: 'acc-4', name: 'Tabungan Rekening Bersama', type: 'Savings', initial_balance: 15000000, current_balance: 15000000, icon: 'piggy-bank', input_by: 'Bersama' }
+      ],
+      categories: [
+        { id: 'cat-1', name: 'Salary & Wages', type: 'INCOME', color: '#10b981', icon: 'banknote' },
+        { id: 'cat-2', name: 'Freelance & Bisnis', type: 'INCOME', color: '#059669', icon: 'briefcase' },
+        { id: 'cat-3', name: 'Food & Groceries', type: 'EXPENSE', color: '#f59e0b', icon: 'utensils' },
+        { id: 'cat-4', name: 'Transport & Fuel', type: 'EXPENSE', color: '#3b82f6', icon: 'car' },
+        { id: 'cat-5', name: 'Bills & Utilities', type: 'EXPENSE', color: '#ef4444', icon: 'zap' },
+        { id: 'cat-6', name: 'Entertainment & Leisure', type: 'EXPENSE', color: '#ec4899', icon: 'film' },
+        { id: 'cat-7', name: 'Healthcare & Wellness', type: 'EXPENSE', color: '#8b5cf6', icon: 'heart-pulse' },
+        { id: 'cat-8', name: 'Shopping & Apparel', type: 'EXPENSE', color: '#06b6d4', icon: 'shopping-bag' }
+      ],
+      budgets: [
+        { id: 'bud-1', category_id: 'cat-3', month: '2026-09', amount: 2500000, input_by: 'Bersama' },
+        { id: 'bud-2', category_id: 'cat-4', month: '2026-09', amount: 800000, input_by: 'Suami' },
+        { id: 'bud-3', category_id: 'cat-5', month: '2026-09', amount: 1500000, input_by: 'Bersama' },
+        { id: 'bud-4', category_id: 'cat-6', month: '2026-09', amount: 600000, input_by: 'Istri' }
+      ],
+      transactions: [
+        {
+          id: 'tx-1',
+          transaction_date: '2026-09-01',
+          type: 'INCOME',
+          account_id: 'acc-2',
+          to_account_id: null,
+          category_id: 'cat-1',
+          amount: 12000000,
+          description: 'Gaji Bulanan September 2026',
+          attachment: null,
+          input_by: 'Suami'
+        },
+        {
+          id: 'tx-2',
+          transaction_date: '2026-09-02',
+          type: 'EXPENSE',
+          account_id: 'acc-2',
+          to_account_id: null,
+          category_id: 'cat-5',
+          amount: 850000,
+          description: 'Listrik PLN & Wifi IndiHome',
+          attachment: null,
+          input_by: 'Suami'
+        },
+        {
+          id: 'tx-3',
+          transaction_date: '2026-09-04',
+          type: 'TRANSFER',
+          account_id: 'acc-2',
+          to_account_id: 'acc-4',
+          category_id: null,
+          amount: 3000000,
+          description: 'Alokasi Tabungan Bulanan',
+          attachment: null,
+          input_by: 'Bersama'
+        }
+      ],
+      recurring: [
+        {
+          id: 'rec-1',
+          name: 'Langganan Spotify Family',
+          type: 'EXPENSE',
+          amount: 86900,
+          frequency: 'MONTHLY',
+          category_id: 'cat-6',
+          account_id: 'acc-3',
+          next_run_date: '2026-10-05',
+          is_active: true,
+          input_by: 'Istri'
+        }
+      ]
+    };
+
+    let appState = {
+      accounts: [],
+      categories: [],
+      budgets: [],
+      transactions: [],
+      recurring: [],
+      activeRoute: 'dashboard',
+      cashFlowPeriod: 'month',
+      txFilter: {
+        search: '',
+        type: 'ALL',
+        category: 'ALL',
+        account: 'ALL',
+        inputter: 'ALL',
+        datePreset: 'THIS_MONTH',
+        startDate: '',
+        endDate: ''
+      },
+      deviceInputter: localStorage.getItem('KASTARA_DEVICE_USER') || 'Suami',
+      currentUser: null,
+      supabase: null,
+      isSupabaseActive: false
+    };
+
+    let currentReceiptBase64 = null;
+
+    async function checkAuthSession() {
+      // 1. Periksa session Supabase jika client aktif
+      if (appState.supabase) {
+        try {
+          const { data: { session } } = await appState.supabase.auth.getSession();
+          if (session && session.user) {
+            const role = session.user.user_metadata?.role || localStorage.getItem('KASTARA_DEVICE_USER') || 'Suami';
+            appState.currentUser = session.user;
+            appState.deviceInputter = role;
+            hideAuthScreen();
+            updateHeaderUserUI();
+            return true;
+          }
+        } catch (e) {
+          console.warn('Session check error:', e);
+        }
+      }
+
+      // 2. Periksa cached local storage session
+      const savedSession = localStorage.getItem(AUTH_SESSION_KEY) || sessionStorage.getItem(AUTH_SESSION_KEY);
+      if (savedSession) {
+        try {
+          const session = JSON.parse(savedSession);
+          if (session && session.user) {
+            appState.currentUser = session.user;
+            appState.deviceInputter = session.role || 'Suami';
+            hideAuthScreen();
+            updateHeaderUserUI();
+            return true;
+          }
+        } catch (e) {
+          localStorage.removeItem(AUTH_SESSION_KEY);
+        }
+      }
+
+      showAuthScreen();
+      return false;
+    }
+
+    function showAuthScreen() {
+      const screen = document.getElementById('auth-screen');
+      if (screen) {
+        screen.classList.remove('hidden');
+        screen.classList.add('flex');
+        setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+      }
+    }
+
+    function hideAuthScreen() {
+      const screen = document.getElementById('auth-screen');
+      if (screen) {
+        screen.classList.add('hidden');
+        screen.classList.remove('flex');
+      }
+    }
+
+    function selectAuthRole(role) {
+      document.getElementById('auth-selected-role').value = role;
+      const bSuami = document.getElementById('auth-role-suami');
+      const bIstri = document.getElementById('auth-role-istri');
+      const activeClass = 'py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 dark:border-indigo-600';
+      const inactiveClass = 'py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800';
+
+      if (role === 'Suami') {
+        bSuami.className = activeClass;
+        bIstri.className = inactiveClass;
+      } else {
+        bIstri.className = activeClass;
+        bSuami.className = inactiveClass;
+      }
+    }
+
+    function toggleAuthMode() {
+      isRegisterMode = !isRegisterMode;
+      const toggleBtn = document.getElementById('auth-mode-toggle');
+      const label = document.getElementById('auth-btn-label');
+      const errBox = document.getElementById('auth-error-msg');
+      if (errBox) errBox.classList.add('hidden');
+
+      if (isRegisterMode) {
+        label.textContent = 'Daftarkan Akun Baru';
+        toggleBtn.textContent = 'Sudah Punya Akun? Masuk';
+      } else {
+        label.textContent = 'Masuk ke Aplikasi';
+        toggleBtn.textContent = 'Buat Akun Baru';
+      }
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<i data-lucide="eye-off" class="w-4 h-4"></i>';
+      } else {
+        input.type = 'password';
+        btn.innerHTML = '<i data-lucide="eye" class="w-4 h-4"></i>';
+      }
+      lucide.createIcons();
+    }
+
+    async function handleEmailAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const role = document.getElementById('auth-selected-role').value;
+      const remember = document.getElementById('auth-remember-me').checked;
+      const errBox = document.getElementById('auth-error-msg');
+      errBox.classList.add('hidden');
+
+      if (!email || !password) {
+        errBox.textContent = 'Email dan kata sandi wajib diisi.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      const submitBtn = document.getElementById('auth-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-75');
+
+      try {
+        if (!appState.supabase) {
+          throw new Error('Supabase client belum terhubung. Periksa konfigurasi di menu Settings.');
+        }
+
+        if (isRegisterMode) {
+          // Sign Up via Supabase Auth
+          const { data, error } = await appState.supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { role } }
+          });
+          if (error) throw error;
+          showToast('Akun berhasil didaftarkan di Supabase Auth! Silakan masuk.', 'success');
+          toggleAuthMode();
+        } else {
+          // Sign In via Supabase Auth
+          const { data, error } = await appState.supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+
+          const user = data.user || { email };
+          const resolvedRole = user.user_metadata?.role || role;
+          loginSuccess(user, resolvedRole, remember);
+        }
+      } catch (err) {
+        console.error(err);
+        let msg = err.message || 'Gagal masuk. Periksa kembali email & kata sandi.';
+        if (msg.includes('Invalid login credentials')) {
+          msg = 'Email atau kata sandi tidak cocok. Klik "Buat Akun Baru" jika Anda belum mendaftar di Supabase Auth.';
+        } else if (msg.includes('Email not confirmed')) {
+          msg = 'Email belum dikonfirmasi. Anda dapat mematikan fitur "Confirm Email" di menu Auth > Providers di dashboard Supabase jika ingin langsung login tanpa konfirmasi email.';
+        }
+        errBox.textContent = msg;
+        errBox.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-75');
+      }
+    }
+
+    function loginSuccess(user, role, remember) {
+      appState.currentUser = user;
+      appState.deviceInputter = role;
+      localStorage.setItem('KASTARA_DEVICE_USER', role);
+
+      const sessionData = JSON.stringify({ user, role, loggedAt: new Date().toISOString() });
+      if (remember) {
+        localStorage.setItem(AUTH_SESSION_KEY, sessionData);
+      } else {
+        sessionStorage.setItem(AUTH_SESSION_KEY, sessionData);
+      }
+
+      hideAuthScreen();
+      updateHeaderUserUI();
+      showToast(`Selamat datang, ${role}!`, 'success');
+      renderCurrentView();
+    }
+
+    function handleLogout() {
+      openConfirmModal(
+        'Kunci & Keluar',
+        'Apakah Anda ingin mengunci aplikasi dan keluar dari sesi Supabase ini?',
+        async () => {
+          localStorage.removeItem(AUTH_SESSION_KEY);
+          sessionStorage.removeItem(AUTH_SESSION_KEY);
+          appState.currentUser = null;
+
+          if (appState.supabase) {
+            try { await appState.supabase.auth.signOut(); } catch (e) {}
+          }
+
+          showToast('Aplikasi berhasil dikunci', 'info');
+          showAuthScreen();
+        },
+        'Kunci & Keluar',
+        'bg-indigo-600 hover:bg-indigo-700',
+        'lock',
+        'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
+      );
+    }
+
+    function updateHeaderUserUI() {
+      const sel = document.getElementById('header-active-user-select');
+      if (sel) sel.value = appState.deviceInputter;
+      const cfgSel = document.getElementById('cfg-device-inputter');
+      if (cfgSel) cfgSel.value = appState.deviceInputter;
+    }
+
+    function getInputterBadge(name) {
+      const val = (name || 'Bersama').trim();
+      if (val === 'Suami') {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/60">👨 Suami</span>`;
+      }
+      if (val === 'Istri') {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-pink-50 dark:bg-pink-950/60 text-pink-600 dark:text-pink-400 border border-pink-200 dark:border-pink-800/60">👩 Istri</span>`;
+      }
+      return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">🤝 ${val}</span>`;
+    }
+
+    function setActiveDeviceUser(name) {
+      appState.deviceInputter = name;
+      localStorage.setItem('KASTARA_DEVICE_USER', name);
+      updateHeaderUserUI();
+      showToast(`Profil penginput aktif diubah ke: ${name}`, 'info');
+    }
+
+    function saveDeviceInputter() {
+      const sel = document.getElementById('cfg-device-inputter');
+      if (sel) {
+        setActiveDeviceUser(sel.value);
+        showToast(`Profil perangkat disimpan: ${sel.value}`, 'success');
+      }
+    }
+
+    const StorageService = {
+      init() {
+        const local = localStorage.getItem(STORAGE_KEY);
+        if (local) {
+          try {
+            const parsed = JSON.parse(local);
+            appState.accounts = parsed.accounts || DEFAULT_SEED_DATA.accounts;
+            appState.categories = parsed.categories || DEFAULT_SEED_DATA.categories;
+            appState.budgets = parsed.budgets || DEFAULT_SEED_DATA.budgets;
+            appState.transactions = parsed.transactions || DEFAULT_SEED_DATA.transactions;
+            appState.recurring = parsed.recurring || DEFAULT_SEED_DATA.recurring;
+          } catch (e) {
+            this.loadSeed();
+          }
+        } else {
+          this.loadSeed();
+        }
+
+        // SUPABASE CLIENT INITIALIZATION
+        let url = DEFAULT_SUPABASE_URL;
+        let key = DEFAULT_SUPABASE_KEY;
+
+        const cfgStr = localStorage.getItem(CFG_KEY);
+        if (cfgStr) {
+          try {
+            const cfg = JSON.parse(cfgStr);
+            if (cfg.url) url = cfg.url;
+            if (cfg.key) key = cfg.key;
+          } catch (e) {}
+        }
+
+        if (url && key && window.supabase) {
+          try {
+            appState.supabase = window.supabase.createClient(url, key);
+            appState.isSupabaseActive = true;
+            this.syncWithSupabase();
+          } catch (err) {
+            console.error('Supabase init error:', err);
+          }
+        }
+
+        this.updateStatusBadge(appState.isSupabaseActive);
+        this.recalculateAllAccountBalances();
+      },
+
+      loadSeed() {
+        appState.accounts = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA.accounts));
+        appState.categories = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA.categories));
+        appState.budgets = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA.budgets));
+        appState.transactions = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA.transactions));
+        appState.recurring = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA.recurring));
+        this.saveLocal();
+      },
+
+      saveLocal() {
+        const payload = {
+          accounts: appState.accounts,
+          categories: appState.categories,
+          budgets: appState.budgets,
+          transactions: appState.transactions,
+          recurring: appState.recurring
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      },
+
+      recalculateAllAccountBalances() {
+        appState.accounts.forEach(acc => {
+          let bal = Number(acc.initial_balance) || 0;
+          appState.transactions.forEach(t => {
+            const amt = Number(t.amount) || 0;
+            if (t.type === 'INCOME' && t.account_id === acc.id) {
+              bal += amt;
+            } else if (t.type === 'EXPENSE' && t.account_id === acc.id) {
+              bal -= amt;
+            } else if (t.type === 'TRANSFER') {
+              if (t.account_id === acc.id) bal -= amt;
+              if (t.to_account_id === acc.id) bal += amt;
+            }
+          });
+          acc.current_balance = bal;
+        });
+        this.saveLocal();
+      },
+
+      updateStatusBadge(isOnline) {
+        const ind = document.getElementById('storage-indicator');
+        const txt = document.getElementById('storage-status-text');
+        const statusLabel = document.getElementById('conn-test-status');
+        if (ind && txt) {
+          if (isOnline) {
+            ind.className = 'w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50';
+            txt.textContent = 'Supabase Cloud';
+            if (statusLabel) statusLabel.innerHTML = '<span class="text-emerald-600 font-bold">Status: Terhubung & Terverifikasi dengan Supabase!</span>';
+          } else {
+            ind.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+            txt.textContent = 'Local Cache';
+            if (statusLabel) statusLabel.textContent = 'Status: Mode Lokal Offline (Data tersimpan di browser)';
+          }
+        }
+      },
+
+      async syncWithSupabase() {
+        if (!appState.supabase) return;
+        try {
+          const { data: accounts, error: errAcc } = await appState.supabase.from('accounts').select('*');
+          if (errAcc) {
+            console.warn('Sync accounts error:', errAcc);
+            return;
+          }
+
+          if (!accounts || accounts.length === 0) {
+            console.log('Database Supabase kosong, mengunggah data akun & kategori awal...');
+            await appState.supabase.from('accounts').upsert(appState.accounts);
+            await appState.supabase.from('categories').upsert(appState.categories);
+            if (appState.budgets.length > 0) {
+              await appState.supabase.from('budgets').upsert(appState.budgets);
+            }
+          } else {
+            appState.accounts = accounts;
+          }
+
+          const { data: categories } = await appState.supabase.from('categories').select('*');
+          if (categories && categories.length > 0) appState.categories = categories;
+
+          const { data: transactions } = await appState.supabase.from('transactions').select('*');
+          if (transactions && transactions.length > 0) appState.transactions = transactions;
+
+          const { data: budgets } = await appState.supabase.from('budgets').select('*');
+          if (budgets && budgets.length > 0) appState.budgets = budgets;
+
+          const { data: recurring } = await appState.supabase.from('recurring_transactions').select('*');
+          if (recurring && recurring.length > 0) appState.recurring = recurring;
+
+          this.recalculateAllAccountBalances();
+          renderCurrentView();
+        } catch (e) {
+          console.warn('Sync error:', e);
+        }
+      }
+    };
+
+    function navigateTo(routeId) {
+      appState.activeRoute = routeId;
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
+      const target = document.getElementById(`view-${routeId}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-item').forEach(item => {
+        const isMatch = item.getAttribute('data-nav') === routeId;
+        if (isMatch) {
+          item.className = 'nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400';
+        } else {
+          item.className = 'nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60';
+        }
+      });
+
+      document.querySelectorAll('[data-mobile-nav]').forEach(item => {
+        const isMatch = item.getAttribute('data-mobile-nav') === routeId;
+        if (isMatch) {
+          item.className = 'flex flex-col items-center justify-center w-12 py-1 text-indigo-600 dark:text-indigo-400 font-semibold';
+        } else {
+          item.className = 'flex flex-col items-center justify-center w-12 py-1 text-slate-500 dark:text-slate-400';
+        }
+      });
+
+      const titles = {
+        dashboard: 'Dashboard',
+        transactions: 'Transactions',
+        accounts: 'Accounts & Wallets',
+        budgets: 'Monthly Budgets',
+        categories: 'Categories',
+        reports: 'Reports & Analytics',
+        recurring: 'Recurring & Bills',
+        impexp: 'Import & Export',
+        settings: 'Settings'
+      };
+      const titleElem = document.getElementById('page-title');
+      if (titleElem) titleElem.textContent = titles[routeId] || 'Personal Finance';
+
+      renderCurrentView();
+    }
+
+    function renderCurrentView() {
+      switch (appState.activeRoute) {
+        case 'dashboard': renderDashboard(); break;
+        case 'transactions': renderTransactionsTable(); break;
+        case 'accounts': renderAccountsView(); break;
+        case 'budgets': renderBudgetsView(); break;
+        case 'categories': renderCategoriesView(); break;
+        case 'reports': renderReportsView(); break;
+        case 'recurring': renderRecurringView(); break;
+        case 'settings': renderSettingsView(); break;
+      }
+      lucide.createIcons();
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateThemeIcon(isDark);
+      if (appState.activeRoute === 'dashboard') renderDashboard();
+      if (appState.activeRoute === 'reports') renderReportsView();
+    }
+
+    function updateThemeIcon(isDark) {
+      const icon = document.getElementById('theme-icon');
+      if (icon) {
+        icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+        lucide.createIcons();
+      }
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+        updateThemeIcon(true);
+      } else {
+        document.documentElement.classList.remove('dark');
+        updateThemeIcon(false);
+      }
+    }
+
+    let cashFlowChartInstance = null;
+    let categoryPieChartInstance = null;
+
+    function renderDashboard() {
+      StorageService.recalculateAllAccountBalances();
+
+      const now = new Date();
+      const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const currentMonthBadge = document.getElementById('current-month-badge');
+      if (currentMonthBadge) {
+        currentMonthBadge.textContent = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+      }
+
+      const totalBalance = appState.accounts.reduce((sum, acc) => sum + (Number(acc.current_balance) || 0), 0);
+      document.getElementById('dash-total-balance').textContent = formatIDR(totalBalance);
+      document.getElementById('dash-accounts-count').textContent = appState.accounts.length;
+
+      const thisMonthTxns = appState.transactions.filter(t => (t.transaction_date || '').startsWith(currentMonthStr));
+
+      const totalIncome = thisMonthTxns
+        .filter(t => t.type === 'INCOME')
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+      document.getElementById('dash-total-income').textContent = formatIDR(totalIncome);
+
+      const totalExpense = thisMonthTxns
+        .filter(t => t.type === 'EXPENSE')
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+      document.getElementById('dash-total-expense').textContent = formatIDR(totalExpense);
+
+      const activeBudgets = appState.budgets.filter(b => b.month === currentMonthStr);
+      const totalBudgetLimit = activeBudgets.reduce((sum, b) => sum + (Number(b.amount) || 0), 0);
+
+      let totalBudgetedExpenses = 0;
+      activeBudgets.forEach(b => {
+        const catExp = thisMonthTxns
+          .filter(t => t.type === 'EXPENSE' && t.category_id === b.category_id)
+          .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        totalBudgetedExpenses += catExp;
+      });
+
+      const budgetRemaining = Math.max(0, totalBudgetLimit - totalBudgetedExpenses);
+      document.getElementById('dash-budget-remaining').textContent = formatIDR(budgetRemaining);
+      const budgetPct = totalBudgetLimit > 0 ? Math.round((totalBudgetedExpenses / totalBudgetLimit) * 100) : 0;
+      document.getElementById('dash-budget-pct-text').textContent = `${budgetPct}% terpakai dari limit ${formatIDR(totalBudgetLimit)}`;
+
+      renderCashFlowChart(currentMonthStr);
+      renderCategoryPieChart(thisMonthTxns);
+      renderDashboardBudgetProgress(currentMonthStr, thisMonthTxns);
+      renderDashboardUpcomingPayments();
+      renderDashboardRecentTransactions();
+    }
+
+    function setCashFlowPeriod(period) {
+      appState.cashFlowPeriod = period;
+      const btnMonth = document.getElementById('btn-flow-month');
+      const btnYear = document.getElementById('btn-flow-year');
+      if (period === 'month') {
+        btnMonth.className = 'px-3 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 shadow-xs';
+        btnYear.className = 'px-3 py-1 rounded-lg font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400';
+      } else {
+        btnYear.className = 'px-3 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 shadow-xs';
+        btnMonth.className = 'px-3 py-1 rounded-lg font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400';
+      }
+      renderDashboard();
+    }
+
+    function renderCashFlowChart(currentMonthStr) {
+      const ctx = document.getElementById('cashFlowChart');
+      if (!ctx) return;
+      if (cashFlowChartInstance) cashFlowChartInstance.destroy();
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      const gridColor = isDark ? '#1e293b' : '#f1f5f9';
+
+      let labels = [];
+      let incomeData = [];
+      let expenseData = [];
+
+      if (appState.cashFlowPeriod === 'month') {
+        for (let i = 1; i <= 30; i++) {
+          labels.push(`D${i}`);
+          const dayStr = `${currentMonthStr}-${String(i).padStart(2, '0')}`;
+          const dayTxns = appState.transactions.filter(t => t.transaction_date === dayStr);
+          const inc = dayTxns.filter(t => t.type === 'INCOME').reduce((s, t) => s + Number(t.amount), 0);
+          const exp = dayTxns.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + Number(t.amount), 0);
+          incomeData.push(inc);
+          expenseData.push(exp);
+        }
+      } else {
+        const year = new Date().getFullYear();
+        const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        shortMonths.forEach((m, idx) => {
+          labels.push(m);
+          const mPrefix = `${year}-${String(idx + 1).padStart(2, '0')}`;
+          const mTxns = appState.transactions.filter(t => (t.transaction_date || '').startsWith(mPrefix));
+          const inc = mTxns.filter(t => t.type === 'INCOME').reduce((s, t) => s + Number(t.amount), 0);
+          const exp = mTxns.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + Number(t.amount), 0);
+          incomeData.push(inc);
+          expenseData.push(exp);
+        });
+      }
+
+      cashFlowChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: 'Income', data: incomeData, backgroundColor: '#10b981', borderRadius: 4 },
+            { label: 'Expense', data: expenseData, backgroundColor: '#f43f5e', borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top', labels: { color: textColor, font: { family: 'Plus Jakarta Sans', size: 11 } } } },
+          scales: {
+            x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+            y: {
+              ticks: {
+                color: textColor,
+                font: { size: 10 },
+                callback: (v) => 'Rp ' + (v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v))
+              },
+              grid: { color: gridColor }
+            }
+          }
+        }
+      });
+    }
+
+    function renderCategoryPieChart(thisMonthTxns) {
+      const ctx = document.getElementById('categoryPieChart');
+      if (!ctx) return;
+      if (categoryPieChartInstance) categoryPieChartInstance.destroy();
+
+      const expenseTxns = thisMonthTxns.filter(t => t.type === 'EXPENSE');
+      const catTotals = {};
+
+      expenseTxns.forEach(t => {
+        catTotals[t.category_id] = (catTotals[t.category_id] || 0) + Number(t.amount);
+      });
+
+      const labels = [];
+      const data = [];
+      const colors = [];
+
+      Object.keys(catTotals).forEach(catId => {
+        const cat = appState.categories.find(c => c.id === catId);
+        labels.push(cat ? cat.name : 'Other Expense');
+        data.push(catTotals[catId]);
+        colors.push(cat ? cat.color : '#94a3b8');
+      });
+
+      const legendElem = document.getElementById('category-legend');
+      if (data.length === 0) {
+        labels.push('Belum ada pengeluaran');
+        data.push(1);
+        colors.push('#cbd5e1');
+        if (legendElem) legendElem.innerHTML = `<span class="text-slate-400">Belum ada pengeluaran tercatat di bulan ini.</span>`;
+      } else if (legendElem) {
+        const totalExp = data.reduce((a, b) => a + b, 0);
+        legendElem.innerHTML = labels.map((lbl, i) => `
+          <div class="flex items-center justify-between text-slate-600 dark:text-slate-400">
+            <span class="flex items-center gap-1.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${colors[i]}"></span>
+              <span class="truncate">${lbl}</span>
+            </span>
+            <span class="font-medium text-slate-800 dark:text-slate-200 shrink-0">${Math.round((data[i] / totalExp) * 100)}%</span>
+          </div>
+        `).join('');
+      }
+
+      categoryPieChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{ data: data, backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function renderDashboardBudgetProgress(currentMonthStr, thisMonthTxns) {
+      const container = document.getElementById('dash-budget-progress-list');
+      if (!container) return;
+
+      const monthlyBudgets = appState.budgets.filter(b => b.month === currentMonthStr);
+      if (monthlyBudgets.length === 0) {
+        container.innerHTML = `
+          <div class="py-8 text-center text-slate-400 text-xs">
+            <p>Belum ada target budget bulan ini.</p>
+            <button onclick="navigateTo('budgets')" class="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">Buat Budget</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = monthlyBudgets.map(b => {
+        const cat = appState.categories.find(c => c.id === b.category_id) || { name: 'Kategori', color: '#6366f1' };
+        const used = thisMonthTxns
+          .filter(t => t.type === 'EXPENSE' && t.category_id === b.category_id)
+          .reduce((sum, t) => sum + Number(t.amount), 0);
+        const limit = Number(b.amount) || 1;
+        const pct = Math.min(100, Math.round((used / limit) * 100));
+        const isOver = used > limit;
+
+        return `
+          <div class="space-y-1.5 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full" style="background-color: ${cat.color}"></span>
+                ${cat.name}
+              </span>
+              <span class="${isOver ? 'text-rose-600 font-bold' : 'text-slate-500'}">${pct}% (${formatIDR(used)} / ${formatIDR(limit)})</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500 ${isOver ? 'bg-rose-500' : (pct > 80 ? 'bg-amber-500' : 'bg-indigo-600')}" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderDashboardUpcomingPayments() {
+      const container = document.getElementById('dash-upcoming-list');
+      if (!container) return;
+
+      const activeRec = appState.recurring.filter(r => r.is_active);
+      if (activeRec.length === 0) {
+        container.innerHTML = `<div class="py-8 text-center text-slate-400 text-xs">Tidak ada tagihan atau pembayaran terdekat.</div>`;
+        return;
+      }
+
+      container.innerHTML = activeRec.map(r => `
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/40 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-mono font-bold text-[11px]">
+              ${r.next_run_date ? r.next_run_date.split('-')[2] : '01'}
+            </div>
+            <div>
+              <div class="font-semibold text-slate-800 dark:text-slate-200">${r.name}</div>
+              <div class="text-[11px] text-slate-400">${r.frequency} • ${r.next_run_date}</div>
+            </div>
+          </div>
+          <div class="font-bold ${r.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900 dark:text-slate-100'}">
+            ${formatIDR(r.amount)}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderDashboardRecentTransactions() {
+      const container = document.getElementById('dash-recent-transactions');
+      if (!container) return;
+
+      const sorted = [...appState.transactions].sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date)).slice(0, 5);
+      if (sorted.length === 0) {
+        container.innerHTML = `<div class="py-8 text-center text-slate-400 text-xs">Belum ada transaksi tersimpan.</div>`;
+        return;
+      }
+
+      container.innerHTML = sorted.map(tx => {
+        const cat = appState.categories.find(c => c.id === tx.category_id) || { name: 'Transfer / Other', color: '#6366f1' };
+        const isExpense = tx.type === 'EXPENSE';
+        const isIncome = tx.type === 'INCOME';
+        const sign = isExpense ? '-' : (isIncome ? '+' : '');
+        const colorClass = isExpense ? 'text-rose-600' : (isIncome ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-300');
+        const inputBadge = tx.input_by === 'Suami' ? '👨 Suami' : (tx.input_by === 'Istri' ? '👩 Istri' : '🤝 ' + (tx.input_by || 'Bersama'));
+
+        return `
+          <div class="flex items-center justify-between text-xs p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+            <div class="flex items-center gap-2.5 truncate">
+              <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${cat.color}"></span>
+              <div class="truncate">
+                <div class="font-semibold text-slate-800 dark:text-slate-200 truncate flex items-center gap-1.5">
+                  <span class="truncate">${tx.description}</span>
+                  <span class="text-[10px] px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 font-normal shrink-0">${inputBadge}</span>
+                </div>
+                <div class="text-[11px] text-slate-400">${cat.name} • ${tx.transaction_date}</div>
+              </div>
+            </div>
+            <div class="font-bold shrink-0 ml-2 ${colorClass}">
+              ${sign}${formatIDR(tx.amount)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function handleDatePresetChange(preset) {
+      appState.txFilter.datePreset = preset;
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth();
+
+      const startInput = document.getElementById('tx-filter-start-date');
+      const endInput = document.getElementById('tx-filter-end-date');
+
+      if (preset === 'TODAY') {
+        const todayStr = now.toISOString().split('T')[0];
+        appState.txFilter.startDate = todayStr;
+        appState.txFilter.endDate = todayStr;
+      } else if (preset === 'THIS_MONTH') {
+        const firstDay = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+        const lastDay = new Date(y, m + 1, 0).toISOString().split('T')[0];
+        appState.txFilter.startDate = firstDay;
+        appState.txFilter.endDate = lastDay;
+      } else if (preset === 'LAST_MONTH') {
+        const prevMonthDate = new Date(y, m - 1, 1);
+        const py = prevMonthDate.getFullYear();
+        const pm = prevMonthDate.getMonth();
+        const firstDay = `${py}-${String(pm + 1).padStart(2, '0')}-01`;
+        const lastDay = new Date(py, pm + 1, 0).toISOString().split('T')[0];
+        appState.txFilter.startDate = firstDay;
+        appState.txFilter.endDate = lastDay;
+      } else if (preset === 'THIS_YEAR') {
+        appState.txFilter.startDate = `${y}-01-01`;
+        appState.txFilter.endDate = `${y}-12-31`;
+      } else if (preset === 'ALL') {
+        appState.txFilter.startDate = '';
+        appState.txFilter.endDate = '';
+      }
+
+      if (startInput) startInput.value = appState.txFilter.startDate;
+      if (endInput) endInput.value = appState.txFilter.endDate;
+
+      renderTransactionsTable();
+    }
+
+    function handleCustomDateChange() {
+      const s = document.getElementById('tx-filter-start-date').value;
+      const e = document.getElementById('tx-filter-end-date').value;
+      appState.txFilter.startDate = s;
+      appState.txFilter.endDate = e;
+      appState.txFilter.datePreset = 'CUSTOM';
+      const presetSel = document.getElementById('tx-filter-date-preset');
+      if (presetSel) presetSel.value = 'CUSTOM';
+      renderTransactionsTable();
+    }
+
+    function resetDateFilter() {
+      appState.txFilter.datePreset = 'ALL';
+      appState.txFilter.startDate = '';
+      appState.txFilter.endDate = '';
+      const presetSel = document.getElementById('tx-filter-date-preset');
+      if (presetSel) presetSel.value = 'ALL';
+      const s = document.getElementById('tx-filter-start-date');
+      const e = document.getElementById('tx-filter-end-date');
+      if (s) s.value = '';
+      if (e) e.value = '';
+      renderTransactionsTable();
+    }
+
+    function populateFilterDropdowns() {
+      const catSelect = document.getElementById('tx-filter-category');
+      const accSelect = document.getElementById('tx-filter-account');
+      if (!catSelect || !accSelect) return;
+
+      catSelect.innerHTML = '<option value="ALL">All Categories</option>' +
+        appState.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+      accSelect.innerHTML = '<option value="ALL">All Accounts</option>' +
+        appState.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    }
+
+    let filterDebounceTimer = null;
+    function debounceFilterTransactions() {
+      clearTimeout(filterDebounceTimer);
+      filterDebounceTimer = setTimeout(() => {
+        applyTransactionFilters();
+      }, 250);
+    }
+
+    function toggleMobileFilterPanel() {
+      const panel = document.getElementById('advanced-filters-panel');
+      if (!panel) return;
+      panel.classList.toggle('hidden');
+      lucide.createIcons();
+    }
+
+    function setTxFilterType(type) {
+      appState.txFilter.type = type;
+      
+      const chips = {
+        ALL: document.getElementById('filter-chip-all'),
+        EXPENSE: document.getElementById('filter-chip-expense'),
+        INCOME: document.getElementById('filter-chip-income'),
+        TRANSFER: document.getElementById('filter-chip-transfer')
+      };
+
+      const activeClass = 'chip-filter px-3 py-1.5 rounded-full font-semibold whitespace-nowrap bg-indigo-600 text-white shadow-xs transition';
+      const inactiveClass = 'chip-filter px-3 py-1.5 rounded-full font-medium whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition';
+
+      Object.keys(chips).forEach(k => {
+        if (chips[k]) {
+          chips[k].className = (k === type) ? activeClass : inactiveClass;
+        }
+      });
+
+      renderTransactionsTable();
+    }
+
+    function updateActiveFilterBadgeCount() {
+      let count = 0;
+      if (appState.txFilter.category !== 'ALL') count++;
+      if (appState.txFilter.account !== 'ALL') count++;
+      if (appState.txFilter.inputter !== 'ALL') count++;
+      if (appState.txFilter.datePreset !== 'THIS_MONTH' && appState.txFilter.datePreset !== 'ALL') count++;
+
+      const badge = document.getElementById('active-filter-badge');
+      if (badge) {
+        if (count > 0) {
+          badge.textContent = count;
+          badge.classList.remove('hidden');
+          badge.classList.add('flex');
+        } else {
+          badge.classList.add('hidden');
+          badge.classList.remove('flex');
+        }
+      }
+    }
+
+    function applyTransactionFilters() {
+      appState.txFilter.search = (document.getElementById('tx-search-input')?.value || '').toLowerCase();
+      appState.txFilter.category = document.getElementById('tx-filter-category')?.value || 'ALL';
+      appState.txFilter.account = document.getElementById('tx-filter-account')?.value || 'ALL';
+      appState.txFilter.inputter = document.getElementById('tx-filter-inputter')?.value || 'ALL';
+      updateActiveFilterBadgeCount();
+      renderTransactionsTable();
+    }
+
+    function renderTransactionsTable() {
+      populateFilterDropdowns();
+      updateActiveFilterBadgeCount();
+
+      const tbody = document.getElementById('transactions-table-body');
+      const mobileList = document.getElementById('transactions-mobile-container');
+      if (!tbody || !mobileList) return;
+
+      let filtered = [...appState.transactions];
+
+      if (appState.txFilter.type !== 'ALL') {
+        filtered = filtered.filter(t => t.type === appState.txFilter.type);
+      }
+      if (appState.txFilter.category !== 'ALL') {
+        filtered = filtered.filter(t => t.category_id === appState.txFilter.category);
+      }
+      if (appState.txFilter.account !== 'ALL') {
+        filtered = filtered.filter(t => t.account_id === appState.txFilter.account || t.to_account_id === appState.txFilter.account);
+      }
+      if (appState.txFilter.inputter !== 'ALL') {
+        filtered = filtered.filter(t => (t.input_by || 'Bersama').toLowerCase() === appState.txFilter.inputter.toLowerCase());
+      }
+      if (appState.txFilter.startDate) {
+        filtered = filtered.filter(t => (t.transaction_date || '') >= appState.txFilter.startDate);
+      }
+      if (appState.txFilter.endDate) {
+        filtered = filtered.filter(t => (t.transaction_date || '') <= appState.txFilter.endDate);
+      }
+      if (appState.txFilter.search) {
+        const q = appState.txFilter.search;
+        filtered = filtered.filter(t =>
+          (t.description || '').toLowerCase().includes(q) ||
+          (t.input_by || '').toLowerCase().includes(q)
+        );
+      }
+
+      filtered.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+      document.getElementById('tx-showing-count').textContent = `Showing ${filtered.length} of ${appState.transactions.length} transactions`;
+
+      if (filtered.length === 0) {
+        const emptyHtml = `
+          <div class="text-center py-12 px-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-400">
+            <i data-lucide="receipt" class="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600 stroke-1"></i>
+            <p class="font-medium text-xs md:text-sm text-slate-600 dark:text-slate-300">Belum ada transaksi yang sesuai filter.</p>
+            <button onclick="openTransactionModal()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-sm active:scale-95 transition">Catat Transaksi Baru</button>
+          </div>
+        `;
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6">${emptyHtml}</td></tr>`;
+        mobileList.innerHTML = emptyHtml;
+        lucide.createIcons();
+        return;
+      }
+
+      /* 1. DESKTOP TABLE RENDER */
+      tbody.innerHTML = filtered.map(tx => {
+        const cat = appState.categories.find(c => c.id === tx.category_id);
+        const acc = appState.accounts.find(a => a.id === tx.account_id);
+        const toAcc = tx.to_account_id ? appState.accounts.find(a => a.id === tx.to_account_id) : null;
+
+        const isExpense = tx.type === 'EXPENSE';
+        const isIncome = tx.type === 'INCOME';
+        const sign = isExpense ? '-' : (isIncome ? '+' : '');
+        const amountColor = isExpense ? 'text-rose-600 font-bold' : (isIncome ? 'text-emerald-600 font-bold' : 'text-indigo-600 dark:text-indigo-400 font-bold');
+
+        const typeBadge = isExpense
+          ? '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">Expense</span>'
+          : (isIncome
+            ? '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">Income</span>'
+            : '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">Transfer</span>');
+
+        const inputBadge = getInputterBadge(tx.input_by);
+        const receiptBtn = tx.attachment
+          ? `<button onclick="viewReceipt('${tx.id}')" class="p-1.5 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950" title="View Receipt"><i data-lucide="image" class="w-4 h-4"></i></button>`
+          : '<span class="text-slate-300 dark:text-slate-700">-</span>';
+
+        return `
+          <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+            <td class="py-3 px-4 font-mono text-slate-500 whitespace-nowrap">${tx.transaction_date}</td>
+            <td class="py-3 px-4 whitespace-nowrap">${typeBadge}</td>
+            <td class="py-3 px-4">
+              <div class="font-medium text-slate-800 dark:text-slate-200">${tx.description}</div>
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              ${cat ? `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background-color: ${cat.color}"></span>${cat.name}</span>` : '<span class="text-slate-400">Internal Transfer</span>'}
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-300">
+              ${tx.type === 'TRANSFER' ? `${acc ? acc.name : '?'} → ${toAcc ? toAcc.name : '?'}` : (acc ? acc.name : '-')}
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap">${inputBadge}</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap ${amountColor}">
+              ${sign}${formatIDR(tx.amount)}
+            </td>
+            <td class="py-3 px-4 text-center whitespace-nowrap">${receiptBtn}</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <div class="flex items-center justify-end gap-1">
+                <button onclick="duplicateTransaction('${tx.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800" title="Duplicate"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                <button onclick="editTransaction('${tx.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800" title="Edit"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button>
+                <button onclick="promptDeleteTransaction('${tx.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800" title="Delete"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      /* 2. MOBILE CARD LIST RENDER */
+      mobileList.innerHTML = filtered.map(tx => {
+        const cat = appState.categories.find(c => c.id === tx.category_id);
+        const acc = appState.accounts.find(a => a.id === tx.account_id);
+        const toAcc = tx.to_account_id ? appState.accounts.find(a => a.id === tx.to_account_id) : null;
+
+        const isExpense = tx.type === 'EXPENSE';
+        const isIncome = tx.type === 'INCOME';
+        const sign = isExpense ? '-' : (isIncome ? '+' : '');
+        const amountColor = isExpense ? 'text-rose-600 dark:text-rose-400' : (isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-indigo-400');
+        const iconBg = isExpense ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-500' : (isIncome ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-500' : 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-500');
+        const iconType = isExpense ? 'arrow-down-left' : (isIncome ? 'arrow-up-right' : 'arrow-left-right');
+
+        const inputBadge = getInputterBadge(tx.input_by);
+        const accountText = tx.type === 'TRANSFER'
+          ? `${acc ? acc.name : '?'} → ${toAcc ? toAcc.name : '?'}`
+          : (acc ? acc.name : '-');
+
+        return `
+          <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-2.5 active:scale-[0.99] transition">
+            <div class="flex items-start justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center shrink-0">
+                  <i data-lucide="${iconType}" class="w-5 h-5"></i>
+                </div>
+                <div class="min-w-0">
+                  <h4 class="font-bold text-sm text-slate-900 dark:text-white truncate">${tx.description}</h4>
+                  <div class="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                    ${cat ? `<span class="flex items-center gap-1 font-medium truncate"><span class="w-1.5 h-1.5 rounded-full" style="background-color: ${cat.color}"></span>${cat.name}</span>` : '<span class="font-medium">Transfer Internal</span>'}
+                    <span>•</span>
+                    <span class="truncate">${accountText}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-right shrink-0">
+                <div class="text-sm font-extrabold ${amountColor} tracking-tight">${sign}${formatIDR(tx.amount)}</div>
+                <span class="text-[10px] text-slate-400 font-mono">${tx.transaction_date}</span>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                ${inputBadge}
+                ${tx.attachment ? `<button onclick="viewReceipt('${tx.id}')" class="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-full"><i data-lucide="image" class="w-3 h-3"></i> Struk</button>` : ''}
+              </div>
+
+              <div class="flex items-center gap-1">
+                <button onclick="duplicateTransaction('${tx.id}')" class="p-1.5 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800" title="Duplikat"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                <button onclick="editTransaction('${tx.id}')" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800" title="Edit"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button>
+                <button onclick="promptDeleteTransaction('${tx.id}')" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800" title="Hapus"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function setTxInputterPreset(name) {
+      document.getElementById('tx-inputted-by').value = name;
+      updateTxInputterButtons(name);
+    }
+
+    function updateTxInputterButtons(selected) {
+      const bSuami = document.getElementById('btn-tx-input-suami');
+      const bIstri = document.getElementById('btn-tx-input-istri');
+      const bBersama = document.getElementById('btn-tx-input-bersama');
+      if (!bSuami || !bIstri || !bBersama) return;
+
+      const activeClass = 'bg-indigo-600 text-white border-indigo-600 shadow-xs';
+      const inactiveClass = 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100';
+
+      bSuami.className = `py-1.5 rounded-lg border text-xs font-semibold transition ${selected === 'Suami' ? activeClass : inactiveClass}`;
+      bIstri.className = `py-1.5 rounded-lg border text-xs font-semibold transition ${selected === 'Istri' ? activeClass : inactiveClass}`;
+      bBersama.className = `py-1.5 rounded-lg border text-xs font-semibold transition ${selected === 'Bersama' ? activeClass : inactiveClass}`;
+    }
+
+    function openTransactionModal(editId = null) {
+      const modal = document.getElementById('modal-transaction');
+      const form = document.getElementById('tx-form');
+      form.reset();
+      currentReceiptBase64 = null;
+      document.getElementById('tx-attachment-preview').textContent = 'Tidak ada file dipilih';
+
+      populateTransactionFormSelects();
+
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('tx-date').value = today;
+
+      if (editId) {
+        const tx = appState.transactions.find(t => t.id === editId);
+        if (tx) {
+          document.getElementById('tx-edit-id').value = tx.id;
+          document.getElementById('tx-amount').value = tx.amount;
+          document.getElementById('tx-date').value = tx.transaction_date;
+          document.getElementById('tx-description').value = tx.description;
+          setTxInputterPreset(tx.input_by || appState.deviceInputter);
+          setTxModalType(tx.type);
+
+          if (tx.type === 'TRANSFER') {
+            document.getElementById('tx-from-account').value = tx.account_id || '';
+            document.getElementById('tx-to-account').value = tx.to_account_id || '';
+          } else {
+            document.getElementById('tx-account').value = tx.account_id || '';
+            document.getElementById('tx-category').value = tx.category_id || '';
+          }
+
+          if (tx.attachment) {
+            currentReceiptBase64 = tx.attachment;
+            document.getElementById('tx-attachment-preview').textContent = 'File struk terlampir';
+          }
+        }
+      } else {
+        document.getElementById('tx-edit-id').value = '';
+        setTxInputterPreset(appState.deviceInputter);
+        setTxModalType('EXPENSE');
+      }
+
+      modal.classList.remove('hidden');
+      setTimeout(() => document.getElementById('tx-amount').focus(), 50);
+      lucide.createIcons();
+    }
+
+    function closeTransactionModal() {
+      document.getElementById('modal-transaction').classList.add('hidden');
+    }
+
+    function populateTransactionFormSelects() {
+      const type = document.getElementById('tx-form-type').value;
+      const catSelect = document.getElementById('tx-category');
+      const accSelect = document.getElementById('tx-account');
+      const fromAcc = document.getElementById('tx-from-account');
+      const toAcc = document.getElementById('tx-to-account');
+
+      const cats = appState.categories.filter(c => c.type === type);
+      catSelect.innerHTML = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+      const accOptions = appState.accounts.map(a => `<option value="${a.id}">${a.name} (${formatIDR(a.current_balance)})</option>`).join('');
+      accSelect.innerHTML = accOptions;
+      fromAcc.innerHTML = accOptions;
+      toAcc.innerHTML = accOptions;
+      if (appState.accounts.length > 1) {
+        toAcc.selectedIndex = 1;
+      }
+    }
+
+    function setTxModalType(type) {
+      document.getElementById('tx-form-type').value = type;
+      const tabExp = document.getElementById('modal-tab-expense');
+      const tabInc = document.getElementById('modal-tab-income');
+      const tabTrf = document.getElementById('modal-tab-transfer');
+      const normalFields = document.getElementById('tx-normal-fields');
+      const transferFields = document.getElementById('tx-transfer-fields');
+
+      [tabExp, tabInc, tabTrf].forEach(tab => {
+        tab.className = 'px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 transition';
+      });
+
+      if (type === 'EXPENSE') {
+        tabExp.className = 'px-3 py-1.5 rounded-lg bg-rose-600 text-white font-semibold transition';
+        normalFields.classList.remove('hidden');
+        transferFields.classList.add('hidden');
+      } else if (type === 'INCOME') {
+        tabInc.className = 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold transition';
+        normalFields.classList.remove('hidden');
+        transferFields.classList.add('hidden');
+      } else {
+        tabTrf.className = 'px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold transition';
+        normalFields.classList.add('hidden');
+        transferFields.classList.remove('hidden');
+      }
+
+      populateTransactionFormSelects();
+    }
+
+    function handleReceiptFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentReceiptBase64 = e.target.result;
+        document.getElementById('tx-attachment-preview').textContent = file.name;
+        showToast('Receipt file berhasil dimuat', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function handleSaveTransaction(e) {
+      e.preventDefault();
+      const editId = document.getElementById('tx-edit-id').value;
+      const type = document.getElementById('tx-form-type').value;
+      const amount = Number(document.getElementById('tx-amount').value);
+      const date = document.getElementById('tx-date').value;
+      const desc = document.getElementById('tx-description').value.trim();
+      const inputBy = document.getElementById('tx-inputted-by').value.trim() || appState.deviceInputter;
+
+      if (amount <= 0) {
+        showToast('Nominal harus lebih dari 0', 'error');
+        return;
+      }
+
+      let accountId = null;
+      let toAccountId = null;
+      let categoryId = null;
+
+      if (type === 'TRANSFER') {
+        accountId = document.getElementById('tx-from-account').value;
+        toAccountId = document.getElementById('tx-to-account').value;
+        if (accountId === toAccountId) {
+          showToast('Source dan Destination account tidak boleh sama!', 'error');
+          return;
+        }
+      } else {
+        accountId = document.getElementById('tx-account').value;
+        categoryId = document.getElementById('tx-category').value;
+      }
+
+      const txObject = {
+        id: editId || 'tx-' + Date.now(),
+        transaction_date: date,
+        type: type,
+        account_id: accountId,
+        to_account_id: toAccountId,
+        category_id: categoryId,
+        amount: amount,
+        description: desc,
+        attachment: currentReceiptBase64,
+        input_by: inputBy
+      };
+
+      if (editId) {
+        const index = appState.transactions.findIndex(t => t.id === editId);
+        if (index !== -1) appState.transactions[index] = txObject;
+      } else {
+        appState.transactions.unshift(txObject);
+      }
+
+      // Supabase Foreign Key Safety Guard
+      if (appState.supabase) {
+        try {
+          if (accountId) {
+            const accObj = appState.accounts.find(a => a.id === accountId);
+            if (accObj) await appState.supabase.from('accounts').upsert(accObj);
+          }
+          if (toAccountId) {
+            const toAccObj = appState.accounts.find(a => a.id === toAccountId);
+            if (toAccObj) await appState.supabase.from('accounts').upsert(toAccObj);
+          }
+          if (categoryId) {
+            const catObj = appState.categories.find(c => c.id === categoryId);
+            if (catObj) await appState.supabase.from('categories').upsert(catObj);
+          }
+
+          const { error } = await appState.supabase.from('transactions').upsert(txObject);
+          if (error) {
+            console.error('Supabase save error:', error);
+            showToast('Supabase Error: ' + error.message, 'error');
+          }
+        } catch (err) {
+          console.warn('Supabase save error:', err);
+        }
+      }
+
+      StorageService.saveLocal();
+      StorageService.recalculateAllAccountBalances();
+      closeTransactionModal();
+      showToast(editId ? `Transaksi diperbarui (Dinput oleh: ${inputBy})` : `Transaksi disimpan oleh ${inputBy}`, 'success');
+      renderCurrentView();
+    }
+
+    function editTransaction(id) {
+      openTransactionModal(id);
+    }
+
+    function duplicateTransaction(id) {
+      const tx = appState.transactions.find(t => t.id === id);
+      if (!tx) return;
+      openTransactionModal();
+      document.getElementById('tx-amount').value = tx.amount;
+      document.getElementById('tx-description').value = tx.description + ' (Copy)';
+      setTxInputterPreset(appState.deviceInputter);
+      setTxModalType(tx.type);
+      if (tx.type === 'TRANSFER') {
+        document.getElementById('tx-from-account').value = tx.account_id || '';
+        document.getElementById('tx-to-account').value = tx.to_account_id || '';
+      } else {
+        document.getElementById('tx-account').value = tx.account_id || '';
+        document.getElementById('tx-category').value = tx.category_id || '';
+      }
+      showToast('Transaksi diduplikasi. Silakan simpan.', 'info');
+    }
+
+    function promptDeleteTransaction(id) {
+      openConfirmModal(
+        'Hapus Transaksi',
+        'Apakah Anda yakin ingin menghapus catatan transaksi ini? Tindakan ini tidak dapat dibatalkan.',
+        async () => {
+          appState.transactions = appState.transactions.filter(t => t.id !== id);
+          if (appState.supabase) {
+            try {
+              await appState.supabase.from('transactions').delete().eq('id', id);
+            } catch (e) { console.warn(e); }
+          }
+          StorageService.saveLocal();
+          StorageService.recalculateAllAccountBalances();
+          showToast('Transaksi berhasil dihapus', 'success');
+          renderCurrentView();
+        },
+        'Hapus',
+        'bg-rose-600 hover:bg-rose-700'
+      );
+    }
+
+    function viewReceipt(txId) {
+      const tx = appState.transactions.find(t => t.id === txId);
+      if (tx && tx.attachment) {
+        document.getElementById('receipt-preview-img').src = tx.attachment;
+        document.getElementById('modal-receipt').classList.remove('hidden');
+      }
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('modal-receipt').classList.add('hidden');
+    }
+
+    function renderAccountsView() {
+      StorageService.recalculateAllAccountBalances();
+      const grid = document.getElementById('accounts-cards-grid');
+      if (!grid) return;
+
+      grid.innerHTML = appState.accounts.map(acc => {
+        const txCount = appState.transactions.filter(t => t.account_id === acc.id || t.to_account_id === acc.id).length;
+        const iconName = acc.type === 'Cash' ? 'wallet' : (acc.type === 'E-Wallet' ? 'smartphone' : (acc.type === 'Savings' ? 'piggy-bank' : 'landmark'));
+        const inputBadge = getInputterBadge(acc.input_by || 'Bersama');
+
+        return `
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-indigo-400 transition">
+            <div>
+              <div class="flex items-center justify-between">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                  <i data-lucide="${iconName}" class="w-5 h-5"></i>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  ${inputBadge}
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase bg-slate-100 dark:bg-slate-800 text-slate-500">${acc.type}</span>
+                </div>
+              </div>
+              <h3 class="font-bold text-base text-slate-900 dark:text-white mt-3">${acc.name}</h3>
+              <div class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight mt-1">${formatIDR(acc.current_balance)}</div>
+              <div class="text-xs text-slate-400 mt-1">Saldo awal: ${formatIDR(acc.initial_balance)}</div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-slate-400 font-medium">${txCount} transaksi</span>
+              <div class="flex items-center gap-1">
+                <button onclick="editAccount('${acc.id}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                <button onclick="promptDeleteAccount('${acc.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function openAccountModal(editId = null) {
+      const modal = document.getElementById('modal-account');
+      const form = document.getElementById('account-form');
+      form.reset();
+      document.getElementById('account-edit-id').value = '';
+      document.getElementById('modal-account-title').textContent = 'Add Account';
+      document.getElementById('account-inputted-by').value = appState.deviceInputter;
+
+      if (editId) {
+        const acc = appState.accounts.find(a => a.id === editId);
+        if (acc) {
+          document.getElementById('account-edit-id').value = acc.id;
+          document.getElementById('account-name').value = acc.name;
+          document.getElementById('account-type').value = acc.type;
+          document.getElementById('account-initial').value = acc.initial_balance;
+          document.getElementById('account-inputted-by').value = acc.input_by || 'Bersama';
+          document.getElementById('modal-account-title').textContent = 'Edit Account';
+        }
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeAccountModal() {
+      document.getElementById('modal-account').classList.add('hidden');
+    }
+
+    async function handleSaveAccount(e) {
+      e.preventDefault();
+      const editId = document.getElementById('account-edit-id').value;
+      const name = document.getElementById('account-name').value.trim();
+      const type = document.getElementById('account-type').value;
+      const initial = Number(document.getElementById('account-initial').value || 0);
+      const inputBy = document.getElementById('account-inputted-by').value;
+
+      const accObj = {
+        id: editId || 'acc-' + Date.now(),
+        name,
+        type,
+        initial_balance: initial,
+        current_balance: initial,
+        icon: 'landmark',
+        input_by: inputBy
+      };
+
+      if (editId) {
+        const idx = appState.accounts.findIndex(a => a.id === editId);
+        if (idx !== -1) appState.accounts[idx] = { ...appState.accounts[idx], ...accObj };
+      } else {
+        appState.accounts.push(accObj);
+      }
+
+      if (appState.supabase) {
+        try {
+          const { error } = await appState.supabase.from('accounts').upsert(accObj);
+          if (error) {
+            console.error('Supabase Error saving account:', error);
+            showToast('Gagal simpan ke Supabase: ' + error.message, 'error');
+          }
+        } catch (err) {
+          console.warn(err);
+        }
+      }
+
+      StorageService.saveLocal();
+      StorageService.recalculateAllAccountBalances();
+      closeAccountModal();
+      showToast('Akun berhasil disimpan', 'success');
+      renderCurrentView();
+    }
+
+    function editAccount(id) { openAccountModal(id); }
+
+    function promptDeleteAccount(id) {
+      openConfirmModal(
+        'Hapus Akun',
+        'Apakah Anda yakin ingin menghapus akun ini? Transaksi terkait akun ini mungkin terpengaruh.',
+        async () => {
+          appState.accounts = appState.accounts.filter(a => a.id !== id);
+          if (appState.supabase) {
+            try { await appState.supabase.from('accounts').delete().eq('id', id); } catch (e) {}
+          }
+          StorageService.saveLocal();
+          StorageService.recalculateAllAccountBalances();
+          showToast('Akun berhasil dihapus', 'success');
+          renderCurrentView();
+        },
+        'Hapus',
+        'bg-rose-600 hover:bg-rose-700'
+      );
+    }
+
+    function renderBudgetsView() {
+      const monthInput = document.getElementById('budget-month-selector');
+      if (!monthInput.value) {
+        const now = new Date();
+        monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      }
+      const selectedMonth = monthInput.value;
+
+      const activeBudgets = appState.budgets.filter(b => b.month === selectedMonth);
+      const list = document.getElementById('budgets-category-list');
+
+      const monthTxns = appState.transactions.filter(t => (t.transaction_date || '').startsWith(selectedMonth));
+      let totalBudget = 0;
+      let totalUsed = 0;
+
+      if (activeBudgets.length === 0) {
+        list.innerHTML = `
+          <div class="p-12 text-center rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-400 text-sm">
+            <i data-lucide="target" class="w-10 h-10 mx-auto mb-2 stroke-1"></i>
+            <p class="font-medium">Belum ada target budget untuk bulan ${selectedMonth}.</p>
+            <button onclick="openBudgetModal()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs">Set Budget Pertama</button>
+          </div>
+        `;
+        document.getElementById('budget-summary-total').textContent = formatIDR(0);
+        document.getElementById('budget-summary-used').textContent = formatIDR(0);
+        document.getElementById('budget-summary-remaining').textContent = formatIDR(0);
+        lucide.createIcons();
+        return;
+      }
+
+      list.innerHTML = activeBudgets.map(b => {
+        const cat = appState.categories.find(c => c.id === b.category_id) || { name: 'Custom Category', color: '#6366f1' };
+        const used = monthTxns
+          .filter(t => t.type === 'EXPENSE' && t.category_id === b.category_id)
+          .reduce((sum, t) => sum + Number(t.amount), 0);
+        const limit = Number(b.amount) || 1;
+        totalBudget += limit;
+        totalUsed += used;
+
+        const remaining = limit - used;
+        const pct = Math.min(100, Math.round((used / limit) * 100));
+        const isOver = used > limit;
+        const inputBadge = getInputterBadge(b.input_by || 'Bersama');
+
+        return `
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border ${isOver ? 'border-rose-400 dark:border-rose-800 bg-rose-50/20' : 'border-slate-200/80 dark:border-slate-800'} shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-3.5 h-3.5 rounded-full" style="background-color: ${cat.color}"></span>
+                <span class="font-bold text-sm text-slate-900 dark:text-white">${cat.name}</span>
+                ${inputBadge}
+                ${isOver ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white">OVER BUDGET</span>' : ''}
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="editBudget('${b.id}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                <button onclick="promptDeleteBudget('${b.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </div>
+
+            <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500 ${isOver ? 'bg-rose-500' : (pct > 80 ? 'bg-amber-500' : 'bg-indigo-600')}" style="width: ${pct}%"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <span>Terpakai: <strong class="text-slate-900 dark:text-white">${formatIDR(used)}</strong> (${pct}%)</span>
+              <span>Tersisa: <strong class="${remaining < 0 ? 'text-rose-600' : 'text-emerald-600'}">${formatIDR(remaining)}</strong></span>
+              <span>Batas: <strong class="text-slate-900 dark:text-white">${formatIDR(limit)}</strong></span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('budget-summary-total').textContent = formatIDR(totalBudget);
+      document.getElementById('budget-summary-used').textContent = formatIDR(totalUsed);
+      document.getElementById('budget-summary-remaining').textContent = formatIDR(Math.max(0, totalBudget - totalUsed));
+      lucide.createIcons();
+    }
+
+    function openBudgetModal(editId = null) {
+      const modal = document.getElementById('modal-budget');
+      const form = document.getElementById('budget-form');
+      form.reset();
+      document.getElementById('budget-edit-id').value = '';
+      document.getElementById('budget-inputted-by').value = appState.deviceInputter;
+
+      const catSelect = document.getElementById('budget-category');
+      const expenseCats = appState.categories.filter(c => c.type === 'EXPENSE');
+      catSelect.innerHTML = expenseCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+      const now = new Date();
+      document.getElementById('budget-month').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+      if (editId) {
+        const b = appState.budgets.find(item => item.id === editId);
+        if (b) {
+          document.getElementById('budget-edit-id').value = b.id;
+          document.getElementById('budget-category').value = b.category_id;
+          document.getElementById('budget-month').value = b.month;
+          document.getElementById('budget-amount').value = b.amount;
+          document.getElementById('budget-inputted-by').value = b.input_by || 'Bersama';
+        }
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeBudgetModal() {
+      document.getElementById('modal-budget').classList.add('hidden');
+    }
+
+    async function handleSaveBudget(e) {
+      e.preventDefault();
+      const editId = document.getElementById('budget-edit-id').value;
+      const catId = document.getElementById('budget-category').value;
+      const month = document.getElementById('budget-month').value;
+      const amount = Number(document.getElementById('budget-amount').value);
+      const inputBy = document.getElementById('budget-inputted-by').value;
+
+      const bObj = {
+        id: editId || 'bud-' + Date.now(),
+        category_id: catId,
+        month,
+        amount,
+        input_by: inputBy
+      };
+
+      if (editId) {
+        const idx = appState.budgets.findIndex(b => b.id === editId);
+        if (idx !== -1) appState.budgets[idx] = bObj;
+      } else {
+        const existingIdx = appState.budgets.findIndex(b => b.category_id === catId && b.month === month);
+        if (existingIdx !== -1) {
+          appState.budgets[existingIdx].amount = amount;
+          appState.budgets[existingIdx].input_by = inputBy;
+        } else {
+          appState.budgets.push(bObj);
+        }
+      }
+
+      if (appState.supabase) {
+        try { await appState.supabase.from('budgets').upsert(bObj); } catch (err) {}
+      }
+
+      StorageService.saveLocal();
+      closeBudgetModal();
+      showToast('Budget bulanan berhasil disimpan', 'success');
+      renderCurrentView();
+    }
+
+    function editBudget(id) { openBudgetModal(id); }
+
+    function promptDeleteBudget(id) {
+      openConfirmModal(
+        'Hapus Budget',
+        'Hapus target budget bulanan ini? Tindakan ini tidak dapat dibatalkan.',
+        async () => {
+          appState.budgets = appState.budgets.filter(b => b.id !== id);
+          if (appState.supabase) {
+            try { await appState.supabase.from('budgets').delete().eq('id', id); } catch (e) {}
+          }
+          StorageService.saveLocal();
+          showToast('Budget berhasil dihapus', 'success');
+          renderCurrentView();
+        },
+        'Hapus',
+        'bg-rose-600 hover:bg-rose-700'
+      );
+    }
+
+    function renderCategoriesView() {
+      const expList = document.getElementById('categories-expense-list');
+      const incList = document.getElementById('categories-income-list');
+
+      const expCats = appState.categories.filter(c => c.type === 'EXPENSE');
+      const incCats = appState.categories.filter(c => c.type === 'INCOME');
+
+      const renderCatItem = (c) => `
+        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/40 text-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${c.color}"></span>
+            <span class="font-semibold text-slate-800 dark:text-slate-200">${c.name}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <button onclick="editCategory('${c.id}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+            <button onclick="promptDeleteCategory('${c.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
+          </div>
+        </div>
+      `;
+
+      expList.innerHTML = expCats.map(renderCatItem).join('');
+      incList.innerHTML = incCats.map(renderCatItem).join('');
+      lucide.createIcons();
+    }
+
+    function openCategoryModal(editId = null) {
+      const modal = document.getElementById('modal-category');
+      const form = document.getElementById('category-form');
+      form.reset();
+      document.getElementById('category-edit-id').value = '';
+
+      if (editId) {
+        const c = appState.categories.find(item => item.id === editId);
+        if (c) {
+          document.getElementById('category-edit-id').value = c.id;
+          document.getElementById('cat-name').value = c.name;
+          document.getElementById('cat-type').value = c.type;
+          document.getElementById('cat-color').value = c.color;
+        }
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeCategoryModal() {
+      document.getElementById('modal-category').classList.add('hidden');
+    }
+
+    async function handleSaveCategory(e) {
+      e.preventDefault();
+      const editId = document.getElementById('category-edit-id').value;
+      const name = document.getElementById('cat-name').value.trim();
+      const type = document.getElementById('cat-type').value;
+      const color = document.getElementById('cat-color').value;
+
+      const catObj = { id: editId || 'cat-' + Date.now(), name, type, color };
+
+      if (editId) {
+        const idx = appState.categories.findIndex(c => c.id === editId);
+        if (idx !== -1) appState.categories[idx] = catObj;
+      } else {
+        appState.categories.push(catObj);
+      }
+
+      if (appState.supabase) {
+        try { await appState.supabase.from('categories').upsert(catObj); } catch (err) {}
+      }
+
+      StorageService.saveLocal();
+      closeCategoryModal();
+      showToast('Kategori berhasil disimpan', 'success');
+      renderCurrentView();
+    }
+
+    function editCategory(id) { openCategoryModal(id); }
+
+    function promptDeleteCategory(id) {
+      openConfirmModal(
+        'Hapus Kategori',
+        'Apakah Anda yakin ingin menghapus kategori ini? Transaksi yang sudah menggunakan kategori ini tidak akan terhapus.',
+        async () => {
+          appState.categories = appState.categories.filter(c => c.id !== id);
+          if (appState.supabase) {
+            try { await appState.supabase.from('categories').delete().eq('id', id); } catch (e) {}
+          }
+          StorageService.saveLocal();
+          showToast('Kategori berhasil dihapus', 'success');
+          renderCurrentView();
+        },
+        'Hapus',
+        'bg-rose-600 hover:bg-rose-700'
+      );
+    }
+
+    let reportMonthlyChartInstance = null;
+    let reportCategoryChartInstance = null;
+
+    function renderReportsView() {
+      const insightsList = document.getElementById('report-insights-list');
+      const tbody = document.getElementById('report-summary-table-body');
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      const gridColor = isDark ? '#1e293b' : '#f1f5f9';
+
+      const monthlyMap = {};
+      appState.transactions.forEach(t => {
+        const m = (t.transaction_date || '').substring(0, 7);
+        if (!m) return;
+        if (!monthlyMap[m]) monthlyMap[m] = { income: 0, expense: 0 };
+        if (t.type === 'INCOME') monthlyMap[m].income += Number(t.amount);
+        if (t.type === 'EXPENSE') monthlyMap[m].expense += Number(t.amount);
+      });
+
+      const sortedMonths = Object.keys(monthlyMap).sort();
+
+      tbody.innerHTML = sortedMonths.map(m => {
+        const inc = monthlyMap[m].income;
+        const exp = monthlyMap[m].expense;
+        const net = inc - exp;
+        const savingsRate = inc > 0 ? Math.round((net / inc) * 100) : 0;
+        return `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+            <td class="py-3 px-4 font-mono font-medium text-slate-800 dark:text-slate-200">${m}</td>
+            <td class="py-3 px-4 text-right text-emerald-600 font-semibold">${formatIDR(inc)}</td>
+            <td class="py-3 px-4 text-right text-rose-600 font-semibold">${formatIDR(exp)}</td>
+            <td class="py-3 px-4 text-right font-bold ${net >= 0 ? 'text-indigo-600' : 'text-rose-600'}">${formatIDR(net)}</td>
+            <td class="py-3 px-4 text-right font-medium">${savingsRate}%</td>
+          </tr>
+        `;
+      }).join('');
+
+      const now = new Date();
+      const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const thisMonthExp = monthlyMap[thisMonth]?.expense || 0;
+      const thisMonthInc = monthlyMap[thisMonth]?.income || 0;
+
+      const catExpenseMap = {};
+      appState.transactions.filter(t => t.type === 'EXPENSE').forEach(t => {
+        catExpenseMap[t.category_id] = (catExpenseMap[t.category_id] || 0) + Number(t.amount);
+      });
+      let topCatId = null;
+      let topCatAmt = 0;
+      Object.keys(catExpenseMap).forEach(id => {
+        if (catExpenseMap[id] > topCatAmt) {
+          topCatAmt = catExpenseMap[id];
+          topCatId = id;
+        }
+      });
+      const topCatName = appState.categories.find(c => c.id === topCatId)?.name || 'Kategori Umum';
+
+      insightsList.innerHTML = `
+        <li>• Bulan ini total pengeluaran Anda tercatat sebesar <strong class="text-slate-900 dark:text-white">${formatIDR(thisMonthExp)}</strong> berbanding pemasukan <strong class="text-slate-900 dark:text-white">${formatIDR(thisMonthInc)}</strong>.</li>
+        <li>• Kategori pengeluaran terbesar sepanjang waktu adalah <strong class="text-indigo-600 dark:text-indigo-400">${topCatName}</strong> dengan total akumulasi ${formatIDR(topCatAmt)}.</li>
+        <li>• Rata-rata tingkat tabungan bersih (Savings Rate) Anda saat ini berada pada kisaran <strong class="text-emerald-600">${thisMonthInc > 0 ? Math.round(((thisMonthInc - thisMonthExp) / thisMonthInc) * 100) : 0}%</strong>.</li>
+      `;
+
+      const ctxMonthly = document.getElementById('reportMonthlyChart');
+      if (ctxMonthly) {
+        if (reportMonthlyChartInstance) reportMonthlyChartInstance.destroy();
+        reportMonthlyChartInstance = new Chart(ctxMonthly, {
+          type: 'bar',
+          data: {
+            labels: sortedMonths,
+            datasets: [
+              { label: 'Income', data: sortedMonths.map(m => monthlyMap[m].income), backgroundColor: '#10b981', borderRadius: 4 },
+              { label: 'Expense', data: sortedMonths.map(m => monthlyMap[m].expense), backgroundColor: '#f43f5e', borderRadius: 4 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { ticks: { color: textColor }, grid: { display: false } },
+              y: { ticks: { color: textColor }, grid: { color: gridColor } }
+            }
+          }
+        });
+      }
+
+      const ctxCategory = document.getElementById('reportCategoryChart');
+      if (ctxCategory) {
+        if (reportCategoryChartInstance) reportCategoryChartInstance.destroy();
+        const catLabels = Object.keys(catExpenseMap).map(id => appState.categories.find(c => c.id === id)?.name || 'Other');
+        const catValues = Object.keys(catExpenseMap).map(id => catExpenseMap[id]);
+        const catColors = Object.keys(catExpenseMap).map(id => appState.categories.find(c => c.id === id)?.color || '#6366f1');
+
+        reportCategoryChartInstance = new Chart(ctxCategory, {
+          type: 'doughnut',
+          data: {
+            labels: catLabels,
+            datasets: [{ data: catValues, backgroundColor: catColors, borderWidth: 0 }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%'
+          }
+        });
+      }
+    }
+
+    function renderRecurringView() {
+      const tbody = document.getElementById('recurring-table-body');
+      if (!tbody) return;
+
+      if (appState.recurring.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-10 text-slate-400 text-xs">Belum ada tagihan berulang tersimpan.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = appState.recurring.map(r => {
+        const cat = appState.categories.find(c => c.id === r.category_id);
+        const acc = appState.accounts.find(a => a.id === r.account_id);
+        const inputBadge = getInputterBadge(r.input_by || 'Bersama');
+
+        return `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+            <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">${r.name}</td>
+            <td class="py-3 px-4">${inputBadge}</td>
+            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${r.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">${r.type}</span></td>
+            <td class="py-3 px-4 font-bold ${r.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900 dark:text-slate-100'}">${formatIDR(r.amount)}</td>
+            <td class="py-3 px-4 text-slate-500">${r.frequency}</td>
+            <td class="py-3 px-4 text-slate-600 dark:text-slate-300">${acc ? acc.name : '-'} / ${cat ? cat.name : '-'}</td>
+            <td class="py-3 px-4 font-mono">${r.next_run_date}</td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${r.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}">
+                <span class="w-1.5 h-1.5 rounded-full ${r.is_active ? 'bg-emerald-500' : 'bg-slate-400'}"></span>
+                ${r.is_active ? 'Active' : 'Paused'}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-right">
+              <button onclick="executeRecurringPlan('${r.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 font-semibold text-[11px] mr-1">Catat Sekarang</button>
+              <button onclick="promptDeleteRecurring('${r.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function openRecurringModal() {
+      const modal = document.getElementById('modal-recurring');
+      const form = document.getElementById('recurring-form');
+      form.reset();
+
+      const catSelect = document.getElementById('rec-category');
+      const accSelect = document.getElementById('rec-account');
+      catSelect.innerHTML = appState.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      accSelect.innerHTML = appState.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+
+      document.getElementById('rec-inputted-by').value = appState.deviceInputter;
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('rec-next-date').value = today;
+      modal.classList.remove('hidden');
+    }
+
+    function closeRecurringModal() {
+      document.getElementById('modal-recurring').classList.add('hidden');
+    }
+
+    async function handleSaveRecurring(e) {
+      e.preventDefault();
+      const recObj = {
+        id: 'rec-' + Date.now(),
+        name: document.getElementById('rec-name').value.trim(),
+        type: document.getElementById('rec-type').value,
+        amount: Number(document.getElementById('rec-amount').value),
+        category_id: document.getElementById('rec-category').value,
+        account_id: document.getElementById('rec-account').value,
+        frequency: document.getElementById('rec-frequency').value,
+        next_run_date: document.getElementById('rec-next-date').value,
+        input_by: document.getElementById('rec-inputted-by').value,
+        is_active: true
+      };
+
+      appState.recurring.push(recObj);
+      if (appState.supabase) {
+        try { await appState.supabase.from('recurring_transactions').upsert(recObj); } catch (err) {}
+      }
+      StorageService.saveLocal();
+      closeRecurringModal();
+      showToast('Jadwal tagihan berhasil ditambahkan', 'success');
+      renderCurrentView();
+    }
+
+    function executeRecurringPlan(id) {
+      const r = appState.recurring.find(item => item.id === id);
+      if (!r) return;
+      openTransactionModal();
+      document.getElementById('tx-amount').value = r.amount;
+      document.getElementById('tx-description').value = r.name;
+      setTxModalType(r.type);
+      document.getElementById('tx-account').value = r.account_id;
+      document.getElementById('tx-category').value = r.category_id;
+      setTxInputterPreset(r.input_by || appState.deviceInputter);
+      showToast(`Mencatat transaksi untuk ${r.name}`, 'info');
+    }
+
+    function promptDeleteRecurring(id) {
+      openConfirmModal(
+        'Hapus Jadwal',
+        'Apakah Anda yakin ingin menghapus jadwal pembayaran ini?',
+        async () => {
+          appState.recurring = appState.recurring.filter(r => r.id !== id);
+          if (appState.supabase) {
+            try { await appState.supabase.from('recurring_transactions').delete().eq('id', id); } catch (e) {}
+          }
+          StorageService.saveLocal();
+          showToast('Jadwal berhasil dihapus', 'success');
+          renderCurrentView();
+        },
+        'Hapus',
+        'bg-rose-600 hover:bg-rose-700'
+      );
+    }
+
+    function exportToExcel() {
+      if (typeof XLSX === 'undefined') {
+        showToast('Library Excel sedang dimuat, mohon tunggu...', 'error');
+        return;
+      }
+
+      const wb = XLSX.utils.book_new();
+
+      const txRows = appState.transactions.map(t => {
+        const cat = appState.categories.find(c => c.id === t.category_id);
+        const acc = appState.accounts.find(a => a.id === t.account_id);
+        const toAcc = t.to_account_id ? appState.accounts.find(a => a.id === t.to_account_id) : null;
+        return {
+          'Date': t.transaction_date,
+          'Type': t.type,
+          'Dinput Oleh': t.input_by || 'Bersama',
+          'Amount': t.amount,
+          'Description': t.description,
+          'Category': cat ? cat.name : (t.type === 'TRANSFER' ? 'Transfer' : '-'),
+          'Account': acc ? acc.name : '-',
+          'To Account': toAcc ? toAcc.name : '-'
+        };
+      });
+      const ws1 = XLSX.utils.json_to_sheet(txRows);
+      XLSX.utils.book_append_sheet(wb, ws1, 'Transactions');
+
+      const catSummary = {};
+      appState.transactions.filter(t => t.type === 'EXPENSE').forEach(t => {
+        const catName = appState.categories.find(c => c.id === t.category_id)?.name || 'Other';
+        catSummary[catName] = (catSummary[catName] || 0) + Number(t.amount);
+      });
+      const catRows = Object.keys(catSummary).map(k => ({ 'Category': k, 'Total Expense': catSummary[k] }));
+      const ws2 = XLSX.utils.json_to_sheet(catRows);
+      XLSX.utils.book_append_sheet(wb, ws2, 'Category Summary');
+
+      const monthlyMap = {};
+      appState.transactions.forEach(t => {
+        const m = (t.transaction_date || '').substring(0, 7);
+        if (!m) return;
+        if (!monthlyMap[m]) monthlyMap[m] = { income: 0, expense: 0 };
+        if (t.type === 'INCOME') monthlyMap[m].income += Number(t.amount);
+        if (t.type === 'EXPENSE') monthlyMap[m].expense += Number(t.amount);
+      });
+      const monthRows = Object.keys(monthlyMap).sort().map(m => ({
+        'Month': m,
+        'Income': monthlyMap[m].income,
+        'Expense': monthlyMap[m].expense,
+        'Net Cash Flow': monthlyMap[m].income - monthlyMap[m].expense
+      }));
+      const ws3 = XLSX.utils.json_to_sheet(monthRows);
+      XLSX.utils.book_append_sheet(wb, ws3, 'Monthly Summary');
+
+      const accRows = appState.accounts.map(a => ({
+        'Account': a.name,
+        'Type': a.type,
+        'Dinput Oleh': a.input_by || 'Bersama',
+        'Initial Balance': a.initial_balance,
+        'Current Balance': a.current_balance
+      }));
+      const ws4 = XLSX.utils.json_to_sheet(accRows);
+      XLSX.utils.book_append_sheet(wb, ws4, 'Accounts');
+
+      XLSX.writeFile(wb, `Dhara_Finance_Family_${new Date().toISOString().split('T')[0]}.xlsx`);
+      showToast('Export Multi-Sheet Excel berhasil di-download!', 'success');
+    }
+
+    function exportToCSV() {
+      if (typeof XLSX === 'undefined') return;
+      const txRows = appState.transactions.map(t => {
+        const cat = appState.categories.find(c => c.id === t.category_id);
+        const acc = appState.accounts.find(a => a.id === t.account_id);
+        return {
+          'Date': t.transaction_date,
+          'Type': t.type,
+          'Dinput Oleh': t.input_by || 'Bersama',
+          'Amount': t.amount,
+          'Description': t.description,
+          'Category': cat ? cat.name : '-',
+          'Account': acc ? acc.name : '-'
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(txRows);
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Dhara_Transactions_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Export CSV berhasil di-download!', 'success');
+    }
+
+    let pendingImportTransactions = [];
+
+    function handleFileImport(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+
+          if (!rows || rows.length === 0) {
+            showToast('File tidak memiliki data atau kosong', 'error');
+            return;
+          }
+
+          pendingImportTransactions = [];
+          const tbody = document.getElementById('import-preview-tbody');
+          tbody.innerHTML = '';
+
+          rows.forEach((row, idx) => {
+            const rawDate = row['Date'] || row['transaction_date'] || row['Tanggal'] || new Date().toISOString().split('T')[0];
+            const rawType = (row['Type'] || row['type'] || row['Tipe'] || 'EXPENSE').toUpperCase();
+            const rawAmt = Number(row['Amount'] || row['amount'] || row['Nominal'] || 0);
+            const rawDesc = row['Description'] || row['description'] || row['Deskripsi'] || 'Imported item';
+            const rawCat = row['Category'] || row['category'] || row['Kategori'] || '';
+            const rawAcc = row['Account'] || row['account'] || row['Akun'] || '';
+            const rawInputter = row['Dinput Oleh'] || row['input_by'] || appState.deviceInputter;
+
+            let catObj = appState.categories.find(c => c.name.toLowerCase() === rawCat.toLowerCase());
+            let accObj = appState.accounts.find(a => a.name.toLowerCase() === rawAcc.toLowerCase());
+
+            const isValid = rawAmt > 0 && (rawType === 'INCOME' || rawType === 'EXPENSE' || rawType === 'TRANSFER');
+
+            const item = {
+              id: 'tx-imp-' + Date.now() + '-' + idx,
+              transaction_date: String(rawDate).substring(0, 10),
+              type: rawType,
+              amount: rawAmt,
+              description: rawDesc,
+              category_id: catObj ? catObj.id : (appState.categories[0]?.id || null),
+              account_id: accObj ? accObj.id : (appState.accounts[0]?.id || null),
+              attachment: null,
+              input_by: rawInputter
+            };
+
+            pendingImportTransactions.push(item);
+
+            tbody.innerHTML += `
+              <tr class="${isValid ? '' : 'bg-rose-50 dark:bg-rose-950/40'}">
+                <td class="py-2 px-3">${item.transaction_date}</td>
+                <td class="py-2 px-3 font-semibold">${item.type}</td>
+                <td class="py-2 px-3 font-bold">${formatIDR(item.amount)}</td>
+                <td class="py-2 px-3">${catObj ? catObj.name : '(Auto)'}</td>
+                <td class="py-2 px-3">${accObj ? accObj.name : '(Auto)'}</td>
+                <td class="py-2 px-3">${item.description}</td>
+                <td class="py-2 px-3">${isValid ? '<span class="text-emerald-600 font-semibold">Valid</span>' : '<span class="text-rose-600 font-semibold">Invalid</span>'}</td>
+              </tr>
+            `;
+          });
+
+          document.getElementById('import-preview-count').textContent = `Ditemukan ${pendingImportTransactions.length} baris data siap di-import.`;
+          document.getElementById('import-preview-container').classList.remove('hidden');
+          showToast(`File berhasil dibaca (${pendingImportTransactions.length} transaksi)`, 'info');
+        } catch (err) {
+          console.error(err);
+          showToast('Format file tidak didukung atau rusak', 'error');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function cancelImport() {
+      pendingImportTransactions = [];
+      document.getElementById('import-preview-container').classList.add('hidden');
+    }
+
+    async function commitImport() {
+      if (pendingImportTransactions.length === 0) return;
+
+      const validItems = pendingImportTransactions.filter(item => item.amount > 0);
+      appState.transactions.unshift(...validItems);
+
+      if (appState.supabase) {
+        try {
+          await appState.supabase.from('transactions').upsert(validItems);
+        } catch (err) {
+          console.warn('Supabase import error:', err);
+        }
+      }
+
+      StorageService.saveLocal();
+      StorageService.recalculateAllAccountBalances();
+      cancelImport();
+      showToast(`${validItems.length} transaksi berhasil di-import!`, 'success');
+      navigateTo('transactions');
+    }
+
+    function renderSettingsView() {
+      const codePre = document.getElementById('sql-schema-pre');
+      if (codePre) codePre.textContent = SUPABASE_SQL_SCHEMA;
+
+      let curUrl = DEFAULT_SUPABASE_URL;
+      let curKey = DEFAULT_SUPABASE_KEY;
+
+      const cfgStr = localStorage.getItem(CFG_KEY);
+      if (cfgStr) {
+        try {
+          const cfg = JSON.parse(cfgStr);
+          if (cfg.url) curUrl = cfg.url;
+          if (cfg.key) curKey = cfg.key;
+        } catch (e) {}
+      }
+
+      document.getElementById('cfg-supabase-url').value = curUrl;
+      document.getElementById('cfg-supabase-key').value = curKey;
+
+      const inputterSel = document.getElementById('cfg-device-inputter');
+      if (inputterSel) inputterSel.value = appState.deviceInputter;
+    }
+
+    async function pushSeedToSupabase() {
+      if (!appState.supabase) {
+        showToast('Supabase belum terkoneksi!', 'error');
+        return;
+      }
+      try {
+        showToast('Mengunggah akun & kategori ke Supabase...', 'info');
+        await appState.supabase.from('accounts').upsert(appState.accounts);
+        await appState.supabase.from('categories').upsert(appState.categories);
+        if (appState.budgets.length > 0) {
+          await appState.supabase.from('budgets').upsert(appState.budgets);
+        }
+        showToast('Data akun & kategori berhasil diunggah ke Supabase!', 'success');
+      } catch (e) {
+        console.error(e);
+        showToast('Gagal upload: ' + e.message, 'error');
+      }
+    }
+
+    async function saveSupabaseConfig() {
+      const urlInput = document.getElementById('cfg-supabase-url');
+      const keyInput = document.getElementById('cfg-supabase-key');
+      const statusLabel = document.getElementById('conn-test-status');
+
+      const url = urlInput.value.trim();
+      const key = keyInput.value.trim();
+
+      if (!url || !key) {
+        showToast('Harap isi Project URL dan Anon Key', 'error');
+        return;
+      }
+
+      if (url.includes('supabase.com/dashboard')) {
+        showToast('URL salah! Gunakan Project URL (akhiran .supabase.co), bukan URL dashboard.', 'error');
+        if (statusLabel) statusLabel.textContent = 'Error: URL salah format (harus https://xxxx.supabase.co)';
+        return;
+      }
+
+      if (statusLabel) statusLabel.textContent = 'Sedang menguji koneksi ke database...';
+
+      try {
+        const testClient = window.supabase.createClient(url, key);
+        const { data, error } = await testClient.from('accounts').select('id').limit(1);
+
+        if (error) {
+          console.error('Supabase Test Error:', error);
+          if (error.code === '42P01') {
+            showToast('Tabel belum dibuat di Supabase! Copy SQL di bawah dan jalankan di SQL Editor Supabase.', 'error');
+            if (statusLabel) statusLabel.innerHTML = '<span class="text-rose-600 font-bold">Error: Tabel accounts belum ada di database. Silakan jalankan script SQL di bawah.</span>';
+          } else if (error.code === '42501') {
+            showToast('Terblokir oleh RLS! Jalankan perintah DISABLE ROW LEVEL SECURITY di SQL Editor.', 'error');
+            if (statusLabel) statusLabel.innerHTML = '<span class="text-rose-600 font-bold">Error: RLS memblokir Anon Key. Jalankan SQL di bawah.</span>';
+          } else {
+            showToast(`Gagal konek: ${error.message}`, 'error');
+            if (statusLabel) statusLabel.innerHTML = `<span class="text-rose-600 font-bold">Error: ${error.message}</span>`;
+          }
+          return;
+        }
+
+        localStorage.setItem(CFG_KEY, JSON.stringify({ url, key }));
+        appState.supabase = testClient;
+        appState.isSupabaseActive = true;
+        StorageService.updateStatusBadge(true);
+        if (statusLabel) statusLabel.innerHTML = '<span class="text-emerald-600 font-bold">Status: Terhubung & Terverifikasi dengan Supabase!</span>';
+        showToast('Koneksi Supabase aktif & terverifikasi!', 'success');
+
+        await StorageService.syncWithSupabase();
+      } catch (err) {
+        console.error(err);
+        showToast('Koneksi Supabase gagal diinisialisasi: ' + err.message, 'error');
+        if (statusLabel) statusLabel.textContent = 'Error koneksi: ' + err.message;
+      }
+    }
+
+    function disconnectSupabase() {
+      localStorage.removeItem(CFG_KEY);
+      appState.supabase = null;
+      appState.isSupabaseActive = false;
+      StorageService.updateStatusBadge(false);
+      showToast('Kembali ke mode penyimpanan lokal offline', 'info');
+    }
+
+    function copySqlSchema() {
+      const el = document.createElement('textarea');
+      el.value = SUPABASE_SQL_SCHEMA;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showToast('SQL Schema berhasil disalin ke clipboard!', 'success');
+    }
+
+    function resetToSampleData() {
+      openConfirmModal(
+        'Muat Sample Data',
+        'Reset data saat ini ke data contoh bawaan?',
+        () => {
+          StorageService.loadSeed();
+          showToast('Sample data berhasil dimuat kembali', 'success');
+          renderCurrentView();
+        },
+        'Muat Sample',
+        'bg-indigo-600 hover:bg-indigo-700'
+      );
+    }
+
+    function promptClearAllData() {
+      openConfirmModal(
+        'Kosongkan Semua Data',
+        'PERINGATAN: Seluruh catatan transaksi lokal akan dihapus permanen!',
+        () => {
+          appState.transactions = [];
+          StorageService.saveLocal();
+          StorageService.recalculateAllAccountBalances();
+          showToast('Seluruh data transaksi telah dibersihkan', 'info');
+          renderCurrentView();
+        },
+        'Hapus Semua',
+        'bg-rose-600 hover:bg-rose-700'
+      );
+    }
+
+    let confirmCallback = null;
+    function openConfirmModal(title, msg, onOk, btnText = 'Lanjutkan', btnClass = 'bg-indigo-600 hover:bg-indigo-700', iconName = 'alert-triangle', iconBoxClass = 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400') {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-msg').textContent = msg;
+      confirmCallback = onOk;
+
+      const okBtn = document.getElementById('confirm-ok-btn');
+      okBtn.textContent = btnText;
+      okBtn.className = `flex-1 py-2 rounded-xl text-xs font-semibold text-white shadow-sm transition ${btnClass}`;
+
+      const iconBox = document.getElementById('confirm-icon-box');
+      if (iconBox) iconBox.className = `w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${iconBoxClass}`;
+
+      const icon = document.getElementById('confirm-icon');
+      if (icon) {
+        icon.setAttribute('data-lucide', iconName);
+        lucide.createIcons();
+      }
+
+      document.getElementById('modal-confirm').classList.remove('hidden');
+
+      okBtn.onclick = () => {
+        if (confirmCallback) confirmCallback();
+        closeConfirmModal();
+      };
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('modal-confirm').classList.add('hidden');
+      confirmCallback = null;
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-600 text-white',
+        error: 'bg-rose-600 text-white',
+        info: 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
+      };
+
+      toast.className = `px-4 py-3 rounded-2xl shadow-xl text-xs md:text-sm font-semibold flex items-center gap-2.5 transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto ${colors[type] || colors.info}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      StorageService.init();
+
+      // Check user authentication session on page load
+      checkAuthSession();
+
+      // Default date filter to this month
+      handleDatePresetChange('THIS_MONTH');
+
+      navigateTo('dashboard');
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
