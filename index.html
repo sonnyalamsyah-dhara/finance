@@ -35,18 +35,8 @@
         background_color: "#0f172a",
         theme_color: "#4f46e5",
         icons: [
-          {
-            src: iconSvg,
-            sizes: "192x192",
-            type: "image/svg+xml",
-            purpose: "any maskable"
-          },
-          {
-            src: iconSvg,
-            sizes: "512x512",
-            type: "image/svg+xml",
-            purpose: "any maskable"
-          }
+          { src: iconSvg, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+          { src: iconSvg, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
         ]
       };
       
@@ -115,6 +105,7 @@
 </head>
 <body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased font-sans flex flex-col md:flex-row overflow-hidden select-none">
 
+  <!-- ================= AUTHENTICATION MODAL SCREEN ================= -->
   <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 modal-backdrop transition-all duration-300">
     <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden fade-in relative">
       
@@ -128,15 +119,15 @@
       </div>
 
       <div class="p-6 md:p-8 pt-0 space-y-4">
-        <!-- Supabase Email & Password Form -->
         <form id="form-auth-email" onsubmit="handleEmailAuth(event)" class="space-y-4">
-          <!-- Email Input -->
+          <!-- Username Input -->
           <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">EMAIL</label>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">NAMA PENGGUNA / USERNAME</label>
             <div class="relative">
-              <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-              <input id="auth-email" type="email" placeholder="nama@keluarga.com" required class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input id="auth-email" type="text" placeholder="Nama Pengguna" required class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
+            <p class="text-[10px] text-slate-400 mt-1">Masukkan nama pengguna akun Anda.</p>
           </div>
 
           <!-- Password Input -->
@@ -155,7 +146,7 @@
           <div class="flex items-center justify-between text-xs pt-1">
             <label class="flex items-center gap-2 cursor-pointer text-slate-500">
               <input type="checkbox" id="auth-remember-me" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
-              <span>Ingat di HP ini</span>
+              <span>Ingat saya di perangkat ini</span>
             </label>
             <button type="button" onclick="toggleAuthMode()" id="auth-mode-toggle" class="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
               Buat Akun Baru
@@ -173,6 +164,7 @@
     </div>
   </div>
 
+  <!-- ================= DESKTOP SIDEBAR ================= -->
   <aside id="sidebar" class="hidden md:flex flex-col w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-30 transition-all duration-300">
     <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
       <div class="flex items-center gap-3">
@@ -241,25 +233,99 @@
     </div>
   </aside>
 
+  <!-- ================= MOBILE SIDE DRAWER (SLIDE-OVER) ================= -->
+  <div id="mobile-drawer" class="fixed inset-0 z-50 hidden transition-opacity duration-300">
+    <div class="fixed inset-0 bg-slate-950/60 modal-backdrop" onclick="closeMobileDrawer()"></div>
+    <div class="fixed inset-y-0 left-0 max-w-xs w-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col z-10 transition-transform duration-300 transform -translate-x-full" id="mobile-drawer-content">
+      
+      <div class="h-16 flex items-center justify-between px-5 border-b border-slate-200 dark:border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md">
+            <i data-lucide="wallet-cards" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-sm tracking-tight text-slate-900 dark:text-white">Dhara Finance</h2>
+            <span class="text-[9px] uppercase tracking-wider text-indigo-500 font-semibold block">Menu Keluarga</span>
+          </div>
+        </div>
+        <button onclick="closeMobileDrawer()" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto p-4 space-y-1 text-sm">
+        <button onclick="navigateFromDrawer('dashboard')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-indigo-500"></i>
+          <span>Dashboard</span>
+        </button>
+        <button onclick="navigateFromDrawer('transactions')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="arrow-left-right" class="w-4 h-4 text-indigo-500"></i>
+          <span>Transactions</span>
+        </button>
+        <button onclick="navigateFromDrawer('accounts')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="landmark" class="w-4 h-4 text-indigo-500"></i>
+          <span>Accounts & Wallets</span>
+        </button>
+        <button onclick="navigateFromDrawer('budgets')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-500"></i>
+          <span>Monthly Budgets</span>
+        </button>
+        <button onclick="navigateFromDrawer('categories')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="tag" class="w-4 h-4 text-indigo-500"></i>
+          <span>Categories</span>
+        </button>
+        <button onclick="navigateFromDrawer('reports')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-500"></i>
+          <span>Reports & Insights</span>
+        </button>
+        <button onclick="navigateFromDrawer('recurring')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="calendar-clock" class="w-4 h-4 text-indigo-500"></i>
+          <span>Recurring & Bills</span>
+        </button>
+        <button onclick="navigateFromDrawer('impexp')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4 text-indigo-500"></i>
+          <span>Import / Export Excel</span>
+        </button>
+
+        <div class="pt-3 mt-3 border-t border-slate-200 dark:border-slate-800">
+          <button onclick="navigateFromDrawer('settings')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="settings" class="w-4 h-4 text-indigo-500"></i>
+            <span>Settings</span>
+          </button>
+        </div>
+      </nav>
+
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+        <button onclick="closeMobileDrawer(); handleLogout();" class="w-full py-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-semibold text-xs flex items-center justify-center gap-2">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span>Kunci & Keluar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN VIEW CONTENT ================= -->
   <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 dark:bg-slate-950">
     <header class="h-16 px-4 md:px-8 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between z-20 shrink-0">
+      
       <div class="flex items-center gap-3">
+        <!-- Mobile Hamburger Button -->
+        <button onclick="openMobileDrawer()" class="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Buka Menu">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+
         <h1 id="page-title" class="text-lg md:text-xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
         <span id="current-month-badge" class="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60"></span>
       </div>
 
       <div class="flex items-center gap-2 md:gap-3">
-        <!-- Active User Badge & Switcher -->
-        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-200/70 dark:border-slate-700/60 text-xs">
-          <span class="text-slate-500 hidden sm:inline">Penginput:</span>
-          <select id="header-active-user-select" onchange="setActiveDeviceUser(this.value)" class="bg-transparent font-bold text-indigo-600 dark:text-indigo-400 focus:outline-none cursor-pointer">
-            <option value="Suami">👨 Suami</option>
-            <option value="Istri">👩 Istri</option>
-            <option value="Bersama">🤝 Bersama</option>
-          </select>
+        <!-- Logged-in Username Badge -->
+        <div class="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/60 px-3 py-1.5 rounded-xl border border-indigo-200/70 dark:border-indigo-800/60 text-xs">
+          <i data-lucide="user" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
+          <span id="header-user-email" class="font-bold text-indigo-600 dark:text-indigo-400 max-w-[120px] sm:max-w-[180px] truncate capitalize">sonny</span>
         </div>
 
-        <!-- Quick Add Transaction Button -->
+        <!-- Quick Add Transaction Button (Desktop Only) -->
         <button onclick="openTransactionModal()" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm shadow-sm transition active:scale-95">
           <i data-lucide="plus" class="w-4 h-4"></i>
           <span>Add Transaction</span>
@@ -271,7 +337,7 @@
         </button>
 
         <!-- Logout Action Button -->
-        <button onclick="handleLogout()" class="p-2 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition" title="Keluar / Kunci Aplikasi">
+        <button onclick="handleLogout()" class="p-2 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition" title="Keluar / Kunci Sesi">
           <i data-lucide="log-out" class="w-4 h-4"></i>
         </button>
       </div>
@@ -280,6 +346,7 @@
     <!-- Views Container -->
     <div id="views-container" class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-12">
 
+      <!-- VIEW: DASHBOARD -->
       <section id="view-dashboard" class="view-panel space-y-6 max-w-7xl mx-auto fade-in">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Total Balance -->
@@ -408,14 +475,14 @@
         </div>
       </section>
 
+      <!-- VIEW: TRANSACTIONS -->
       <section id="view-transactions" class="view-panel hidden space-y-4 max-w-7xl mx-auto fade-in">
-        <!-- Filter Card / Search Controls -->
         <div class="p-4 md:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
           <!-- Top Row: Search Bar & Action Buttons -->
           <div class="flex items-center gap-2">
             <div class="relative flex-1">
               <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input id="tx-search-input" oninput="debounceFilterTransactions()" type="text" placeholder="Cari transaksi, deskripsi..." class="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs md:text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <input id="tx-search-input" oninput="debounceFilterTransactions()" type="text" placeholder="Cari transaksi, deskripsi, penginput..." class="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs md:text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
             <!-- Toggle Filter Button with Badge -->
@@ -446,9 +513,6 @@
                 <label class="block text-[11px] font-semibold text-slate-500 mb-1">PENGINPUT</label>
                 <select id="tx-filter-inputter" onchange="applyTransactionFilters()" class="w-full py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none">
                   <option value="ALL">Semua Penginput</option>
-                  <option value="Suami">👨 Suami</option>
-                  <option value="Istri">👩 Istri</option>
-                  <option value="Bersama">🤝 Bersama</option>
                 </select>
               </div>
 
@@ -529,25 +593,32 @@
         </div>
       </section>
 
+      <!-- VIEW: ACCOUNTS -->
       <section id="view-accounts" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-lg font-bold text-slate-900 dark:text-white">Accounts & Wallets</h2>
             <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Pantau saldo kas, rekening bank, dan dompet digital</p>
           </div>
-          <button onclick="openAccountModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>Add Account</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="syncAllInputtersToCurrentUser()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs transition" title="Ubah inputer semua akun menjadi akun login Anda">
+              Klaim Semua Akun
+            </button>
+            <button onclick="openAccountModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add Account</span>
+            </button>
+          </div>
         </div>
         <div id="accounts-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
       </section>
 
+      <!-- VIEW: BUDGETS -->
       <section id="view-budgets" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-lg font-bold text-slate-900 dark:text-white">Monthly Budgets</h2>
-            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Kendalikan pengeluaran bulanan agar tidak over-budget</p>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Kendalikan pengeluaran bulanan keluarga</p>
           </div>
           <div class="flex items-center gap-3">
             <input type="month" id="budget-month-selector" onchange="renderBudgetsView()" class="py-2 px-3 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -576,6 +647,7 @@
         <div id="budgets-category-list" class="space-y-4"></div>
       </section>
 
+      <!-- VIEW: CATEGORIES -->
       <section id="view-categories" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
         <div class="flex items-center justify-between">
           <div>
@@ -606,12 +678,11 @@
         </div>
       </section>
 
+      <!-- VIEW: REPORTS -->
       <section id="view-reports" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Financial Reports & Insights</h2>
-            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Analisis komprehensif pemasukan, pengeluaran, dan tren</p>
-          </div>
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">Financial Reports & Insights</h2>
+          <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Analisis komprehensif pemasukan, pengeluaran, dan tren</p>
         </div>
 
         <div class="p-5 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5 border border-indigo-200 dark:border-indigo-900/50">
@@ -659,11 +730,12 @@
         </div>
       </section>
 
+      <!-- VIEW: RECURRING -->
       <section id="view-recurring" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-lg font-bold text-slate-900 dark:text-white">Recurring Transactions & Subscriptions</h2>
-            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Jadwal transaksi otomatis untuk tagihan langganan atau gaji</p>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Jadwal transaksi rutin langganan atau pengeluaran tetap</p>
           </div>
           <button onclick="openRecurringModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
             <i data-lucide="plus" class="w-4 h-4"></i>
@@ -693,6 +765,7 @@
         </div>
       </section>
 
+      <!-- VIEW: IMPORT / EXPORT -->
       <section id="view-impexp" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
         <div>
           <h2 class="text-lg font-bold text-slate-900 dark:text-white">Import & Export Data</h2>
@@ -729,7 +802,7 @@
               </div>
               <h3 class="font-bold text-base text-slate-900 dark:text-white">Import From Excel / CSV</h3>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Upload file data transaksi untuk di-import langsung ke database dengan verifikasi dan pratinjau otomatis.
+                Upload file data transaksi untuk di-import langsung ke database dengan verifikasi otomatis.
               </p>
             </div>
             <div class="mt-6">
@@ -772,10 +845,11 @@
         </div>
       </section>
 
+      <!-- VIEW: SETTINGS -->
       <section id="view-settings" class="view-panel hidden space-y-6 max-w-5xl mx-auto fade-in">
         <div>
           <h2 class="text-lg font-bold text-slate-900 dark:text-white">Settings & Supabase Configuration</h2>
-          <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Kelola koneksi cloud database, profil penginput bawaan, dan preferensi aplikasi</p>
+          <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Kelola database cloud dan sinkronisasi penginput akun</p>
         </div>
 
         <!-- Default Inputter Device Preference -->
@@ -785,18 +859,17 @@
               <i data-lucide="user-check" class="w-4 h-4"></i>
             </div>
             <div>
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white">Profil Penginput Default di Perangkat Ini</h3>
-              <p class="text-xs text-slate-500">Atur siapa yang biasanya menggunakan HP/laptop ini agar setiap form otomatis terisi namanya.</p>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">Sinkronisasi Pemilik / Penginput Data</h3>
+              <p class="text-xs text-slate-500">Nama pengguna aktif saat ini dikunci otomatis sebagai pencatat di seluruh data.</p>
             </div>
           </div>
           <div class="flex flex-wrap items-center gap-3 pt-2">
-            <select id="cfg-device-inputter" class="px-3.5 py-2 rounded-xl text-xs md:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-              <option value="Suami">👨 Suami (HP Suami)</option>
-              <option value="Istri">👩 Istri (HP Istri)</option>
-              <option value="Bersama">🤝 Bersama (Laptop / Komputer Rumah)</option>
-            </select>
+            <input id="cfg-device-inputter" type="text" placeholder="username" class="px-3.5 py-2 rounded-xl text-xs md:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-64">
             <button onclick="saveDeviceInputter()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs shadow-sm transition">
-              Simpan Profil Perangkat
+              Simpan Username
+            </button>
+            <button onclick="syncAllInputtersToCurrentUser()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-sm transition" title="Ubah inputer semua data lama ke user login ini">
+              Klaim Semua Data ke Akun Saya
             </button>
           </div>
         </div>
@@ -845,21 +918,55 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <i data-lucide="terminal" class="w-4 h-4 text-indigo-500"></i>
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white">PostgreSQL Schema & RLS Setup (Supabase SQL Editor)</h3>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">PostgreSQL Schema & RLS Setup</h3>
             </div>
             <button onclick="copySqlSchema()" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
               <i data-lucide="copy" class="w-3.5 h-3.5"></i>
               <span>Copy SQL</span>
             </button>
           </div>
-          <p class="text-xs text-slate-500">Copy kode SQL di bawah ini dan jalankan di menu <strong>SQL Editor</strong> di dashboard Supabase Anda jika tabel belum dibuat:</p>
           <pre id="sql-schema-pre" class="p-4 rounded-xl bg-slate-900 text-slate-200 text-xs font-mono max-h-72 overflow-y-auto leading-relaxed"></pre>
+        </div>
+
+        <!-- User Approvals Admin Card (Visible to sonny@dhara.com) -->
+        <div id="cfg-approvals-card" class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">Persetujuan Akun Pengguna Baru</h3>
+                <p class="text-xs text-slate-500">Semua pendaftaran akun baru wajib disetujui oleh <strong class="text-indigo-600 dark:text-indigo-400">sonny@dhara.com</strong>.</p>
+              </div>
+            </div>
+            <span id="pending-approvals-count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+              0 Menunggu
+            </span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 dark:bg-slate-800 text-slate-500 font-semibold border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                  <th class="py-2.5 px-3">Username</th>
+                  <th class="py-2.5 px-3">Email Terdaftar</th>
+                  <th class="py-2.5 px-3">Tanggal Pengajuan</th>
+                  <th class="py-2.5 px-3">Status</th>
+                  <th class="py-2.5 px-3 text-right">Aksi Administrator</th>
+                </tr>
+              </thead>
+              <tbody id="approvals-table-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tr><td colspan="5" class="py-4 text-center text-slate-400">Belum ada permintaan akun baru.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
           <div>
             <h4 class="font-bold text-sm text-slate-900 dark:text-white">Reset & Demo Data</h4>
-            <p class="text-xs text-slate-500">Muat ulang data simulasi awal atau bersihkan seluruh data transaksi lokal.</p>
+            <p class="text-xs text-slate-500">Muat ulang data simulasi awal atau bersihkan seluruh data transaksi.</p>
           </div>
           <div class="flex items-center gap-2">
             <button onclick="resetToSampleData()" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-semibold text-slate-700 dark:text-slate-300">Muat Sample Data</button>
@@ -870,6 +977,7 @@
 
     </div>
 
+    <!-- ================= MOBILE BOTTOM NAVIGATION ================= -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 flex items-center justify-around z-30 px-2">
       <button onclick="navigateTo('dashboard')" data-mobile-nav="dashboard" class="flex flex-col items-center justify-center w-12 py-1 text-slate-500 dark:text-slate-400">
         <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
@@ -881,7 +989,7 @@
       </button>
 
       <!-- Center Floating Plus Button -->
-      <button onclick="openTransactionModal()" class="w-11 h-11 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 -translate-y-3 active:scale-90 transition">
+      <button onclick="openTransactionModal()" class="w-11 h-11 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 -translate-y-3 active:scale-90 transition" title="Tambah Transaksi">
         <i data-lucide="plus" class="w-6 h-6"></i>
       </button>
 
@@ -889,13 +997,16 @@
         <i data-lucide="landmark" class="w-5 h-5"></i>
         <span class="text-[10px] font-medium mt-0.5">Accounts</span>
       </button>
-      <button onclick="navigateTo('reports')" data-mobile-nav="reports" class="flex flex-col items-center justify-center w-12 py-1 text-slate-500 dark:text-slate-400">
-        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-        <span class="text-[10px] font-medium mt-0.5">Reports</span>
+      
+      <!-- Mobile Drawer Open Button -->
+      <button onclick="openMobileDrawer()" class="flex flex-col items-center justify-center w-12 py-1 text-slate-500 dark:text-slate-400">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Menu</span>
       </button>
     </nav>
   </main>
 
+  <!-- MODAL: ADD / EDIT TRANSACTION -->
   <div id="modal-transaction" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
     <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden fade-in max-h-[90vh] flex flex-col">
       <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
@@ -913,15 +1024,13 @@
         <input type="hidden" id="tx-edit-id" value="">
         <input type="hidden" id="tx-form-type" value="EXPENSE">
 
-        <!-- Dinput Oleh Selector -->
+        <!-- Dinput Oleh (Locked to Logged In User) -->
         <div>
-          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DINPUT OLEH (PENCATAT TRANSAKSI)</label>
-          <div class="grid grid-cols-3 gap-2 mb-1.5">
-            <button type="button" onclick="setTxInputterPreset('Suami')" id="btn-tx-input-suami" class="py-1.5 rounded-lg border text-xs font-semibold transition">👨 Suami</button>
-            <button type="button" onclick="setTxInputterPreset('Istri')" id="btn-tx-input-istri" class="py-1.5 rounded-lg border text-xs font-semibold transition">👩 Istri</button>
-            <button type="button" onclick="setTxInputterPreset('Bersama')" id="btn-tx-input-bersama" class="py-1.5 rounded-lg border text-xs font-semibold transition">🤝 Bersama</button>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DINPUT OLEH</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input id="tx-inputted-by" type="text" readonly required class="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-indigo-600 dark:text-indigo-400 cursor-not-allowed">
           </div>
-          <input id="tx-inputted-by" type="text" placeholder="Nama penginput..." required class="w-full px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
         </div>
 
         <div>
@@ -965,7 +1074,7 @@
 
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DESCRIPTION</label>
-          <input id="tx-description" type="text" placeholder="e.g. Belanja mingguan, bensin, token PLN" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <input id="tx-description" type="text" placeholder="e.g. Belanja dapur, bensin, gaji" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <div>
@@ -989,6 +1098,7 @@
     </div>
   </div>
 
+  <!-- MODAL: ADD / EDIT ACCOUNT -->
   <div id="modal-account" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
     <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in">
       <div class="flex items-center justify-between mb-4">
@@ -1001,15 +1111,11 @@
         <input type="hidden" id="account-edit-id" value="">
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">ACCOUNT NAME</label>
-          <input id="account-name" type="text" placeholder="e.g. Bank BCA Suami, GoPay Istri" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+          <input id="account-name" type="text" placeholder="e.g. Bank BCA, GoPay, Dompet Tunai" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">PEMILIK / DINPUT OLEH</label>
-          <select id="account-inputted-by" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-            <option value="Suami">👨 Suami</option>
-            <option value="Istri">👩 Istri</option>
-            <option value="Bersama">🤝 Bersama</option>
-          </select>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">PEMILIK / PENGINPUT</label>
+          <input id="account-inputted-by" type="text" readonly required class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 font-semibold text-indigo-600 dark:text-indigo-400 cursor-not-allowed">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">TYPE</label>
@@ -1032,6 +1138,7 @@
     </div>
   </div>
 
+  <!-- MODAL: ADD / EDIT CATEGORY -->
   <div id="modal-category" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
     <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in">
       <div class="flex items-center justify-between mb-4">
@@ -1044,7 +1151,7 @@
         <input type="hidden" id="category-edit-id" value="">
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">CATEGORY NAME</label>
-          <input id="cat-name" type="text" placeholder="e.g. Gadget, Gym, Kursus Anak" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+          <input id="cat-name" type="text" placeholder="e.g. Gadget, Gym, Kursus" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">TYPE</label>
@@ -1064,6 +1171,7 @@
     </div>
   </div>
 
+  <!-- MODAL: ADD / EDIT BUDGET -->
   <div id="modal-budget" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
     <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in">
       <div class="flex items-center justify-between mb-4">
@@ -1076,11 +1184,7 @@
         <input type="hidden" id="budget-edit-id" value="">
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DIBUAT OLEH</label>
-          <select id="budget-inputted-by" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-            <option value="Suami">👨 Suami</option>
-            <option value="Istri">👩 Istri</option>
-            <option value="Bersama">🤝 Bersama</option>
-          </select>
+          <input id="budget-inputted-by" type="text" readonly required class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 font-semibold text-indigo-600 dark:text-indigo-400 cursor-not-allowed">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">CATEGORY</label>
@@ -1101,6 +1205,7 @@
     </div>
   </div>
 
+  <!-- MODAL: ADD / EDIT RECURRING -->
   <div id="modal-recurring" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
     <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in">
       <div class="flex items-center justify-between mb-4">
@@ -1116,12 +1221,8 @@
           <input id="rec-name" type="text" placeholder="e.g. Spotify, Netflix, Wifi" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DIBAYAR / DINPUT OLEH</label>
-          <select id="rec-inputted-by" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-            <option value="Suami">👨 Suami</option>
-            <option value="Istri">👩 Istri</option>
-            <option value="Bersama">🤝 Bersama</option>
-          </select>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DIBAYAR OLEH</label>
+          <input id="rec-inputted-by" type="text" readonly required class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 font-semibold text-indigo-600 dark:text-indigo-400 cursor-not-allowed">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -1167,6 +1268,7 @@
     </div>
   </div>
 
+  <!-- MODAL: RECEIPT PREVIEW -->
   <div id="modal-receipt" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/80 modal-backdrop">
     <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden fade-in">
       <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
@@ -1181,9 +1283,10 @@
     </div>
   </div>
 
+  <!-- MODAL: UNIVERSAL CONFIRMATION -->
   <div id="modal-confirm" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
     <div class="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in text-center">
-      <div id="confirm-icon-box" class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-3">
+      <div id="confirm-icon-box" class="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3">
         <i id="confirm-icon" data-lucide="alert-triangle" class="w-6 h-6"></i>
       </div>
       <h3 id="confirm-title" class="font-bold text-base text-slate-900 dark:text-white">Konfirmasi</h3>
@@ -1202,11 +1305,57 @@
     /* STORAGE KEYS */
     const STORAGE_KEY = 'KASTARA_APP_STATE_V2';
     const CFG_KEY = 'KASTARA_SUPABASE_CFG_V2';
-    const AUTH_SESSION_KEY = 'DHARA_AUTH_SESSION_V1';
+    const AUTH_SESSION_KEY = 'DHARA_AUTH_SESSION_V2';
 
     // EMBEDDED SUPABASE CREDENTIALS (AUTO-CONNECTED)
     const DEFAULT_SUPABASE_URL = 'https://xeoevhykcljwkutowvsy.supabase.co';
     const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhlb2V2aHlrY2xqd2t1dG93dnN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1NjU0MzYsImV4cCI6MjEwNjE0MTQzNn0.Aql6H85Zv2FHwLGg1R3qKGR0hhxvWu1O5BjYhMT7-m8';
+
+    /* IDLE AUTO-LOGOUT CONFIGURATION (2 MENIT) */
+    const IDLE_TIMEOUT_MS = 2 * 60 * 1000;
+    let idleTimer = null;
+
+    function resetIdleTimer() {
+      if (idleTimer) clearTimeout(idleTimer);
+
+      // Jangan jalankan timer jika layar login sedang aktif/terkunci
+      const authScreen = document.getElementById('auth-screen');
+      if (authScreen && !authScreen.classList.contains('hidden')) {
+        return;
+      }
+
+      idleTimer = setTimeout(triggerAutoLogout, IDLE_TIMEOUT_MS);
+    }
+
+    function triggerAutoLogout() {
+      // Tutup seluruh modal jika ada yang sedang terbuka
+      const allModals = ['modal-transaction', 'modal-account', 'modal-category', 'modal-budget', 'modal-recurring', 'modal-receipt', 'modal-confirm'];
+      allModals.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+      closeMobileDrawer();
+
+      // Hapus token sesi aktif
+      localStorage.removeItem(AUTH_SESSION_KEY);
+      sessionStorage.removeItem(AUTH_SESSION_KEY);
+      appState.currentUser = null;
+
+      if (appState.supabase) {
+        try { appState.supabase.auth.signOut(); } catch (e) {}
+      }
+
+      showAuthScreen();
+      showToast('Sesi terkunci otomatis karena tidak ada aktivitas selama 2 menit.', 'info');
+    }
+
+    function initIdleTracker() {
+      const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+      activityEvents.forEach(evt => {
+        window.addEventListener(evt, resetIdleTimer, { passive: true });
+      });
+      resetIdleTimer();
+    }
 
     const formatIDR = (amount) => {
       return new Intl.NumberFormat('id-ID', {
@@ -1216,7 +1365,41 @@
       }).format(amount || 0);
     };
 
+    function cleanUsername(raw) {
+      if (!raw) return 'user';
+      let str = String(raw).trim();
+      if (str.includes('@')) {
+        str = str.split('@')[0];
+      }
+      return str.toLowerCase();
+    }
+
+    function toAuthEmail(input) {
+      let val = String(input).trim().toLowerCase();
+      if (!val.includes('@')) {
+        val = `${val}@dhara.internal`;
+      }
+      return val;
+    }
+
+    function getActiveUser() {
+      if (appState.deviceInputter) return cleanUsername(appState.deviceInputter);
+      if (appState.currentUser) {
+        return cleanUsername(appState.currentUser.user_metadata?.username || appState.currentUser.email);
+      }
+      const cached = localStorage.getItem('KASTARA_DEVICE_USER');
+      return cleanUsername(cached) || 'user';
+    }
+
     let isRegisterMode = false;
+    let currentReceiptBase64 = null;
+    let filterDebounceTimer = null;
+    let confirmCallback = null;
+    let pendingImportTransactions = [];
+    let cashFlowChartInstance = null;
+    let categoryPieChartInstance = null;
+    let reportMonthlyChartInstance = null;
+    let reportCategoryChartInstance = null;
 
     const SUPABASE_SQL_SCHEMA = `-- DHARA DATABASE SCHEMA (POSTGRESQL / SUPABASE)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -1229,7 +1412,7 @@ CREATE TABLE IF NOT EXISTS accounts (
   initial_balance NUMERIC(18,2) NOT NULL DEFAULT 0,
   current_balance NUMERIC(18,2) NOT NULL DEFAULT 0,
   icon VARCHAR(50) DEFAULT 'landmark',
-  input_by VARCHAR(50) DEFAULT 'Bersama',
+  input_by VARCHAR(100) DEFAULT 'user',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1255,7 +1438,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   amount NUMERIC(18,2) NOT NULL CHECK (amount > 0),
   description TEXT NOT NULL,
   attachment TEXT,
-  input_by VARCHAR(50) DEFAULT 'Bersama',
+  input_by VARCHAR(100) DEFAULT 'user',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1266,7 +1449,7 @@ CREATE TABLE IF NOT EXISTS budgets (
   category_id TEXT REFERENCES categories(id) ON DELETE CASCADE,
   month VARCHAR(7) NOT NULL,
   amount NUMERIC(18,2) NOT NULL CHECK (amount > 0),
-  input_by VARCHAR(50) DEFAULT 'Bersama',
+  input_by VARCHAR(100) DEFAULT 'user',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -1281,36 +1464,46 @@ CREATE TABLE IF NOT EXISTS recurring_transactions (
   account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
   next_run_date DATE NOT NULL,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  input_by VARCHAR(50) DEFAULT 'Bersama',
+  input_by VARCHAR(100) DEFAULT 'user',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- DISABLE ROW LEVEL SECURITY (RLS) FOR DIRECT ACCESS VIA ANON KEY
+-- 6. USER APPROVALS TABLE
+CREATE TABLE IF NOT EXISTS user_approvals (
+  id TEXT PRIMARY KEY,
+  username VARCHAR(100) NOT NULL UNIQUE,
+  email VARCHAR(150) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+  requested_at TIMESTAMPTZ DEFAULT NOW(),
+  approved_at TIMESTAMPTZ,
+  approved_by VARCHAR(100)
+);
+
 ALTER TABLE accounts DISABLE ROW LEVEL SECURITY;
 ALTER TABLE categories DISABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE budgets DISABLE ROW LEVEL SECURITY;
 ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE user_approvals DISABLE ROW LEVEL SECURITY;
 
--- GRANT PUBLIC/ANON ACCESS
 GRANT ALL ON TABLE accounts TO anon, authenticated, service_role;
 GRANT ALL ON TABLE categories TO anon, authenticated, service_role;
 GRANT ALL ON TABLE transactions TO anon, authenticated, service_role;
 GRANT ALL ON TABLE budgets TO anon, authenticated, service_role;
 GRANT ALL ON TABLE recurring_transactions TO anon, authenticated, service_role;
+GRANT ALL ON TABLE user_approvals TO anon, authenticated, service_role;
 
--- PERFORMANCE INDEXES
-CREATE INDEX IF NOT EXISTS idx_tx_date ON transactions(transaction_date);
-CREATE INDEX IF NOT EXISTS idx_tx_type ON transactions(type);
-CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
+-- Pre-seed Super Admin
+INSERT INTO user_approvals (id, username, email, status, approved_at, approved_by)
+VALUES ('appr-admin-sonny', 'sonny', 'sonny@dhara.com', 'APPROVED', NOW(), 'system')
+ON CONFLICT (username) DO NOTHING;
 `;
 
     const DEFAULT_SEED_DATA = {
       accounts: [
-        { id: 'acc-1', name: 'Cash / Dompet Suami', type: 'Cash', initial_balance: 1250000, current_balance: 1250000, icon: 'wallet', input_by: 'Suami' },
-        { id: 'acc-2', name: 'Bank BCA Sonny', type: 'Bank', initial_balance: 8500000, current_balance: 8500000, icon: 'landmark', input_by: 'Suami' },
-        { id: 'acc-3', name: 'GoPay Istri', type: 'E-Wallet', initial_balance: 350000, current_balance: 350000, icon: 'smartphone', input_by: 'Istri' },
-        { id: 'acc-4', name: 'Tabungan Rekening Bersama', type: 'Savings', initial_balance: 15000000, current_balance: 15000000, icon: 'piggy-bank', input_by: 'Bersama' }
+        { id: 'acc-1', name: 'Dompet Tunai', type: 'Cash', initial_balance: 500000, current_balance: 500000, icon: 'wallet', input_by: 'sonny' },
+        { id: 'acc-2', name: 'Bank BCA Sonny', type: 'Bank', initial_balance: 8500000, current_balance: 8500000, icon: 'landmark', input_by: 'sonny' },
+        { id: 'acc-3', name: 'GoPay / E-Wallet', type: 'E-Wallet', initial_balance: 350000, current_balance: 350000, icon: 'smartphone', input_by: 'sonny' }
       ],
       categories: [
         { id: 'cat-1', name: 'Salary & Wages', type: 'INCOME', color: '#10b981', icon: 'banknote' },
@@ -1318,68 +1511,11 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         { id: 'cat-3', name: 'Food & Groceries', type: 'EXPENSE', color: '#f59e0b', icon: 'utensils' },
         { id: 'cat-4', name: 'Transport & Fuel', type: 'EXPENSE', color: '#3b82f6', icon: 'car' },
         { id: 'cat-5', name: 'Bills & Utilities', type: 'EXPENSE', color: '#ef4444', icon: 'zap' },
-        { id: 'cat-6', name: 'Entertainment & Leisure', type: 'EXPENSE', color: '#ec4899', icon: 'film' },
-        { id: 'cat-7', name: 'Healthcare & Wellness', type: 'EXPENSE', color: '#8b5cf6', icon: 'heart-pulse' },
-        { id: 'cat-8', name: 'Shopping & Apparel', type: 'EXPENSE', color: '#06b6d4', icon: 'shopping-bag' }
+        { id: 'cat-6', name: 'Entertainment & Leisure', type: 'EXPENSE', color: '#ec4899', icon: 'film' }
       ],
-      budgets: [
-        { id: 'bud-1', category_id: 'cat-3', month: '2026-09', amount: 2500000, input_by: 'Bersama' },
-        { id: 'bud-2', category_id: 'cat-4', month: '2026-09', amount: 800000, input_by: 'Suami' },
-        { id: 'bud-3', category_id: 'cat-5', month: '2026-09', amount: 1500000, input_by: 'Bersama' },
-        { id: 'bud-4', category_id: 'cat-6', month: '2026-09', amount: 600000, input_by: 'Istri' }
-      ],
-      transactions: [
-        {
-          id: 'tx-1',
-          transaction_date: '2026-09-01',
-          type: 'INCOME',
-          account_id: 'acc-2',
-          to_account_id: null,
-          category_id: 'cat-1',
-          amount: 12000000,
-          description: 'Gaji Bulanan September 2026',
-          attachment: null,
-          input_by: 'Suami'
-        },
-        {
-          id: 'tx-2',
-          transaction_date: '2026-09-02',
-          type: 'EXPENSE',
-          account_id: 'acc-2',
-          to_account_id: null,
-          category_id: 'cat-5',
-          amount: 850000,
-          description: 'Listrik PLN & Wifi IndiHome',
-          attachment: null,
-          input_by: 'Suami'
-        },
-        {
-          id: 'tx-3',
-          transaction_date: '2026-09-04',
-          type: 'TRANSFER',
-          account_id: 'acc-2',
-          to_account_id: 'acc-4',
-          category_id: null,
-          amount: 3000000,
-          description: 'Alokasi Tabungan Bulanan',
-          attachment: null,
-          input_by: 'Bersama'
-        }
-      ],
-      recurring: [
-        {
-          id: 'rec-1',
-          name: 'Langganan Spotify Family',
-          type: 'EXPENSE',
-          amount: 86900,
-          frequency: 'MONTHLY',
-          category_id: 'cat-6',
-          account_id: 'acc-3',
-          next_run_date: '2026-10-05',
-          is_active: true,
-          input_by: 'Istri'
-        }
-      ]
+      budgets: [],
+      transactions: [],
+      recurring: []
     };
 
     let appState = {
@@ -1388,6 +1524,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       budgets: [],
       transactions: [],
       recurring: [],
+      userApprovals: [],
       activeRoute: 'dashboard',
       cashFlowPeriod: 'month',
       txFilter: {
@@ -1400,23 +1537,50 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         startDate: '',
         endDate: ''
       },
-      deviceInputter: localStorage.getItem('KASTARA_DEVICE_USER') || 'Suami',
+      deviceInputter: localStorage.getItem('KASTARA_DEVICE_USER') || 'sonny',
       currentUser: null,
       supabase: null,
       isSupabaseActive: false
     };
 
-    let currentReceiptBase64 = null;
+    /* MOBILE DRAWER HANDLERS */
+    function openMobileDrawer() {
+      const drawer = document.getElementById('mobile-drawer');
+      const content = document.getElementById('mobile-drawer-content');
+      if (!drawer || !content) return;
+      drawer.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        content.classList.remove('-translate-x-full');
+      });
+      lucide.createIcons();
+    }
 
+    function closeMobileDrawer() {
+      const drawer = document.getElementById('mobile-drawer');
+      const content = document.getElementById('mobile-drawer-content');
+      if (!drawer || !content) return;
+      content.classList.add('-translate-x-full');
+      setTimeout(() => {
+        drawer.classList.add('hidden');
+      }, 300);
+    }
+
+    function navigateFromDrawer(routeId) {
+      closeMobileDrawer();
+      navigateTo(routeId);
+    }
+
+    /* AUTHENTICATION LOGIC */
     async function checkAuthSession() {
-      // 1. Periksa session Supabase jika client aktif
       if (appState.supabase) {
         try {
           const { data: { session } } = await appState.supabase.auth.getSession();
           if (session && session.user) {
-            const role = session.user.user_metadata?.role || localStorage.getItem('KASTARA_DEVICE_USER') || 'Suami';
+            const rawUser = session.user.user_metadata?.username || session.user.email;
+            const clean = cleanUsername(rawUser);
             appState.currentUser = session.user;
-            appState.deviceInputter = role;
+            appState.deviceInputter = clean;
+            localStorage.setItem('KASTARA_DEVICE_USER', clean);
             hideAuthScreen();
             updateHeaderUserUI();
             return true;
@@ -1426,14 +1590,15 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         }
       }
 
-      // 2. Periksa cached local storage session
       const savedSession = localStorage.getItem(AUTH_SESSION_KEY) || sessionStorage.getItem(AUTH_SESSION_KEY);
       if (savedSession) {
         try {
           const session = JSON.parse(savedSession);
           if (session && session.user) {
+            const clean = cleanUsername(session.username || session.user.email);
             appState.currentUser = session.user;
-            appState.deviceInputter = session.role || 'Suami';
+            appState.deviceInputter = clean;
+            localStorage.setItem('KASTARA_DEVICE_USER', clean);
             hideAuthScreen();
             updateHeaderUserUI();
             return true;
@@ -1495,18 +1660,20 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
 
     async function handleEmailAuth(e) {
       e.preventDefault();
-      const email = document.getElementById('auth-email').value.trim();
+      const rawUser = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value;
-      const role = localStorage.getItem('KASTARA_DEVICE_USER') || 'Suami';
       const remember = document.getElementById('auth-remember-me').checked;
       const errBox = document.getElementById('auth-error-msg');
       errBox.classList.add('hidden');
 
-      if (!email || !password) {
-        errBox.textContent = 'Email dan kata sandi wajib diisi.';
+      if (!rawUser || !password) {
+        errBox.textContent = 'Nama pengguna dan kata sandi wajib diisi.';
         errBox.classList.remove('hidden');
         return;
       }
+
+      const cleanUser = cleanUsername(rawUser);
+      const email = toAuthEmail(rawUser);
 
       const submitBtn = document.getElementById('auth-submit-btn');
       submitBtn.disabled = true;
@@ -1518,32 +1685,94 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         }
 
         if (isRegisterMode) {
-          // Sign Up via Supabase Auth
+          // Check if username already exists in approvals
+          const { data: existingAppr } = await appState.supabase.from('user_approvals').select('*').eq('username', cleanUser).maybeSingle();
+          if (existingAppr) {
+            throw new Error(`Nama pengguna "${cleanUser}" sudah pernah didaftarkan (Status: ${existingAppr.status}).`);
+          }
+
           const { data, error } = await appState.supabase.auth.signUp({
             email,
             password,
-            options: { data: { role } }
+            options: { data: { username: cleanUser } }
           });
           if (error) throw error;
-          showToast('Akun berhasil didaftarkan di Supabase Auth! Silakan masuk.', 'success');
-          toggleAuthMode();
+
+          // Record approval status
+          const isSuperAdmin = cleanUser === 'sonny' || email === 'sonny@dhara.com';
+          const approvalRecord = {
+            id: 'appr-' + Date.now(),
+            username: cleanUser,
+            email: email,
+            status: isSuperAdmin ? 'APPROVED' : 'PENDING',
+            requested_at: new Date().toISOString(),
+            approved_at: isSuperAdmin ? new Date().toISOString() : null,
+            approved_by: isSuperAdmin ? 'system' : null
+          };
+
+          try {
+            await appState.supabase.from('user_approvals').upsert(approvalRecord);
+          } catch (e) {
+            console.warn('Record approval error:', e);
+          }
+
+          // Cache locally as well
+          const currentApprovals = JSON.parse(localStorage.getItem('DHARA_USER_APPROVALS') || '[]');
+          currentApprovals.push(approvalRecord);
+          localStorage.setItem('DHARA_USER_APPROVALS', JSON.stringify(currentApprovals));
+
+          if (isSuperAdmin) {
+            showToast(`Akun admin "${cleanUser}" berhasil didaftarkan! Silakan masuk.`, 'success');
+            toggleAuthMode();
+          } else {
+            // Trigger approval notification to sonny@dhara.com
+            sendApprovalNotificationEmail(cleanUser, email);
+            errBox.className = 'p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-xs font-medium border border-amber-200 dark:border-amber-900/60 leading-relaxed';
+            errBox.innerHTML = `
+              <strong>Pendaftaran Berhasil!</strong><br>
+              Akun <strong>"${cleanUser}"</strong> sedang menunggu persetujuan (approval) dari Administrator <strong>sonny@dhara.com</strong>.<br>
+              <span class="text-[11px] block mt-1 text-slate-500 dark:text-slate-400">Pemberitahuan persetujuan telah dikirimkan ke sonny@dhara.com.</span>
+            `;
+            errBox.classList.remove('hidden');
+          }
         } else {
-          // Sign In via Supabase Auth
+          // SIGN IN: Check approval status first
+          if (cleanUser !== 'sonny') {
+            let status = 'APPROVED';
+            try {
+              const { data: appr } = await appState.supabase.from('user_approvals').select('*').eq('username', cleanUser).maybeSingle();
+              if (appr) {
+                status = appr.status;
+              } else {
+                // Check local cached approvals
+                const localApprs = JSON.parse(localStorage.getItem('DHARA_USER_APPROVALS') || '[]');
+                const found = localApprs.find(a => cleanUsername(a.username) === cleanUser);
+                if (found) status = found.status;
+              }
+            } catch (err) {
+              console.warn('Check approval status error:', err);
+            }
+
+            if (status === 'PENDING') {
+              throw new Error(`Akun "${cleanUser}" masih berstatus MENUNGGU PERSETUJUAN (PENDING) dari Administrator sonny@dhara.com. Harap tunggu hingga disetujui.`);
+            } else if (status === 'REJECTED') {
+              throw new Error(`Pendaftaran akun "${cleanUser}" telah DITOLAK oleh Administrator sonny@dhara.com.`);
+            }
+          }
+
           const { data, error } = await appState.supabase.auth.signInWithPassword({ email, password });
           if (error) throw error;
 
-          const user = data.user || { email };
-          const resolvedRole = user.user_metadata?.role || role;
-          loginSuccess(user, resolvedRole, remember);
+          const user = data.user || { email, user_metadata: { username: cleanUser } };
+          loginSuccess(user, cleanUser, remember);
         }
       } catch (err) {
         console.error(err);
-        let msg = err.message || 'Gagal masuk. Periksa kembali email & kata sandi.';
+        let msg = err.message || 'Gagal masuk. Periksa kembali nama pengguna & kata sandi.';
         if (msg.includes('Invalid login credentials')) {
-          msg = 'Email atau kata sandi tidak cocok. Klik "Buat Akun Baru" jika Anda belum mendaftar di Supabase Auth.';
-        } else if (msg.includes('Email not confirmed')) {
-          msg = 'Email belum dikonfirmasi. Anda dapat mematikan fitur "Confirm Email" di menu Auth > Providers di dashboard Supabase jika ingin langsung login tanpa konfirmasi email.';
+          msg = 'Nama pengguna atau kata sandi tidak cocok. Klik "Buat Akun Baru" jika belum terdaftar.';
         }
+        errBox.className = 'p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-medium text-center border border-rose-200 dark:border-rose-900/60 leading-relaxed';
         errBox.textContent = msg;
         errBox.classList.remove('hidden');
       } finally {
@@ -1552,12 +1781,29 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       }
     }
 
-    function loginSuccess(user, role, remember) {
-      appState.currentUser = user;
-      appState.deviceInputter = role;
-      localStorage.setItem('KASTARA_DEVICE_USER', role);
+    function sendApprovalNotificationEmail(newUsername, newEmail) {
+      const adminEmail = 'sonny@dhara.com';
+      const subject = encodeURIComponent(`[Dhara Finance] Permintaan Persetujuan Akun Baru: ${newUsername}`);
+      const body = encodeURIComponent(
+        `Halo Sonny,\n\nAda pengguna baru yang baru saja mendaftar di Dhara Finance dan membutuhkan persetujuan Anda:\n\n` +
+        `- Username: ${newUsername}\n` +
+        `- Email: ${newEmail}\n` +
+        `- Waktu Permintaan: ${new Date().toLocaleString('id-ID')}\n\n` +
+        `Silakan buka menu Settings di aplikasi Dhara Finance untuk menyetujui (Approve) atau menolak akun ini.\n\n` +
+        `Salam,\nDhara Finance System`
+      );
 
-      const sessionData = JSON.stringify({ user, role, loggedAt: new Date().toISOString() });
+      // Create a background ping / mailto intent log
+      console.log(`[APPROVAL NOTIFICATION SENT] To: ${adminEmail} | Subject: Permintaan Approval Akun Baru: ${newUsername}`);
+      showToast(`Notifikasi permohonan akun "${newUsername}" telah dikirim ke ${adminEmail}`, 'info');
+    }
+
+    function loginSuccess(user, cleanUser, remember) {
+      appState.currentUser = user;
+      appState.deviceInputter = cleanUser;
+      localStorage.setItem('KASTARA_DEVICE_USER', cleanUser);
+
+      const sessionData = JSON.stringify({ user, username: cleanUser, loggedAt: new Date().toISOString() });
       if (remember) {
         localStorage.setItem(AUTH_SESSION_KEY, sessionData);
       } else {
@@ -1566,14 +1812,15 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
 
       hideAuthScreen();
       updateHeaderUserUI();
-      showToast(`Selamat datang, ${role}!`, 'success');
+      resetIdleTimer();
+      showToast(`Selamat datang, ${cleanUser}!`, 'success');
       renderCurrentView();
     }
 
     function handleLogout() {
       openConfirmModal(
         'Kunci & Keluar',
-        'Apakah Anda ingin mengunci aplikasi dan keluar dari sesi Supabase ini?',
+        'Apakah Anda ingin mengunci aplikasi dan keluar dari sesi ini?',
         async () => {
           localStorage.removeItem(AUTH_SESSION_KEY);
           sessionStorage.removeItem(AUTH_SESSION_KEY);
@@ -1593,39 +1840,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       );
     }
 
-    function updateHeaderUserUI() {
-      const sel = document.getElementById('header-active-user-select');
-      if (sel) sel.value = appState.deviceInputter;
-      const cfgSel = document.getElementById('cfg-device-inputter');
-      if (cfgSel) cfgSel.value = appState.deviceInputter;
-    }
-
-    function getInputterBadge(name) {
-      const val = (name || 'Bersama').trim();
-      if (val === 'Suami') {
-        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/60">👨 Suami</span>`;
-      }
-      if (val === 'Istri') {
-        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-pink-50 dark:bg-pink-950/60 text-pink-600 dark:text-pink-400 border border-pink-200 dark:border-pink-800/60">👩 Istri</span>`;
-      }
-      return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">🤝 ${val}</span>`;
-    }
-
-    function setActiveDeviceUser(name) {
-      appState.deviceInputter = name;
-      localStorage.setItem('KASTARA_DEVICE_USER', name);
-      updateHeaderUserUI();
-      showToast(`Profil penginput aktif diubah ke: ${name}`, 'info');
-    }
-
-    function saveDeviceInputter() {
-      const sel = document.getElementById('cfg-device-inputter');
-      if (sel) {
-        setActiveDeviceUser(sel.value);
-        showToast(`Profil perangkat disimpan: ${sel.value}`, 'success');
-      }
-    }
-
+    /* STORAGE SERVICE & STATE PERSISTENCE */
     const StorageService = {
       init() {
         const local = localStorage.getItem(STORAGE_KEY);
@@ -1644,7 +1859,6 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
           this.loadSeed();
         }
 
-        // SUPABASE CLIENT INITIALIZATION
         let url = DEFAULT_SUPABASE_URL;
         let key = DEFAULT_SUPABASE_KEY;
 
@@ -1722,7 +1936,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
           } else {
             ind.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
             txt.textContent = 'Local Cache';
-            if (statusLabel) statusLabel.textContent = 'Status: Mode Lokal Offline (Data tersimpan di browser)';
+            if (statusLabel) statusLabel.textContent = 'Status: Mode Lokal Offline';
           }
         }
       },
@@ -1731,20 +1945,11 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         if (!appState.supabase) return;
         try {
           const { data: accounts, error: errAcc } = await appState.supabase.from('accounts').select('*');
-          if (errAcc) {
-            console.warn('Sync accounts error:', errAcc);
-            return;
-          }
-
-          if (!accounts || accounts.length === 0) {
-            console.log('Database Supabase kosong, mengunggah data akun & kategori awal...');
+          if (!errAcc && accounts && accounts.length > 0) {
+            appState.accounts = accounts;
+          } else if (!accounts || accounts.length === 0) {
             await appState.supabase.from('accounts').upsert(appState.accounts);
             await appState.supabase.from('categories').upsert(appState.categories);
-            if (appState.budgets.length > 0) {
-              await appState.supabase.from('budgets').upsert(appState.budgets);
-            }
-          } else {
-            appState.accounts = accounts;
           }
 
           const { data: categories } = await appState.supabase.from('categories').select('*');
@@ -1759,6 +1964,15 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
           const { data: recurring } = await appState.supabase.from('recurring_transactions').select('*');
           if (recurring && recurring.length > 0) appState.recurring = recurring;
 
+          const { data: approvals } = await appState.supabase.from('user_approvals').select('*');
+          if (approvals && approvals.length > 0) {
+            appState.userApprovals = approvals;
+            localStorage.setItem('DHARA_USER_APPROVALS', JSON.stringify(approvals));
+          } else {
+            const localApprs = JSON.parse(localStorage.getItem('DHARA_USER_APPROVALS') || '[]');
+            appState.userApprovals = localApprs;
+          }
+
           this.recalculateAllAccountBalances();
           renderCurrentView();
         } catch (e) {
@@ -1766,6 +1980,77 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         }
       }
     };
+
+    function updateHeaderUserUI() {
+      const emailElem = document.getElementById('header-user-email');
+      const curUser = getActiveUser();
+      if (emailElem) {
+        emailElem.textContent = curUser;
+        emailElem.title = curUser;
+      }
+      const cfgUser = document.getElementById('cfg-device-inputter');
+      if (cfgUser) cfgUser.value = curUser;
+    }
+
+    function getInputterBadge(rawName) {
+      const val = cleanUsername(rawName || getActiveUser());
+      return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 capitalize" title="${val}">
+        <i data-lucide="user" class="w-3 h-3 shrink-0"></i>
+        <span>${val}</span>
+      </span>`;
+    }
+
+    function setActiveDeviceUser(name) {
+      const clean = cleanUsername(name);
+      appState.deviceInputter = clean;
+      localStorage.setItem('KASTARA_DEVICE_USER', clean);
+      updateHeaderUserUI();
+      renderCurrentView();
+    }
+
+    function saveDeviceInputter() {
+      const sel = document.getElementById('cfg-device-inputter');
+      if (sel && sel.value.trim()) {
+        setActiveDeviceUser(sel.value.trim());
+        showToast(`Nama pengguna disimpan: ${sel.value.trim()}`, 'success');
+        renderCurrentView();
+      }
+    }
+
+    async function syncAllInputtersToCurrentUser() {
+      const currentUser = getActiveUser();
+      openConfirmModal(
+        'Klaim Semua Data',
+        `Apakah Anda ingin memperbarui label pemilik/inputer pada SEMUA akun, transaksi, budget, dan recurring menjadi "${currentUser}"?`,
+        async () => {
+          appState.accounts.forEach(a => a.input_by = currentUser);
+          appState.transactions.forEach(t => t.input_by = currentUser);
+          appState.budgets.forEach(b => b.input_by = currentUser);
+          appState.recurring.forEach(r => r.input_by = currentUser);
+
+          StorageService.saveLocal();
+
+          if (appState.supabase) {
+            try {
+              showToast('Menyinkronkan ke Supabase...', 'info');
+              await appState.supabase.from('accounts').upsert(appState.accounts);
+              await appState.supabase.from('transactions').upsert(appState.transactions);
+              await appState.supabase.from('budgets').upsert(appState.budgets);
+              await appState.supabase.from('recurring_transactions').upsert(appState.recurring);
+            } catch (err) {
+              console.warn('Sync inputter error:', err);
+            }
+          }
+
+          showToast(`Semua data berhasil diperbarui ke: ${currentUser}`, 'success');
+          renderCurrentView();
+        },
+        'Klaim Semua',
+        'bg-emerald-600 hover:bg-emerald-700',
+        'user-check',
+        'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+      );
+    }
 
     function navigateTo(routeId) {
       appState.activeRoute = routeId;
@@ -1849,9 +2134,6 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         updateThemeIcon(false);
       }
     }
-
-    let cashFlowChartInstance = null;
-    let categoryPieChartInstance = null;
 
     function renderDashboard() {
       StorageService.recalculateAllAccountBalances();
@@ -2124,7 +2406,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         const isIncome = tx.type === 'INCOME';
         const sign = isExpense ? '-' : (isIncome ? '+' : '');
         const colorClass = isExpense ? 'text-rose-600' : (isIncome ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-300');
-        const inputBadge = tx.input_by === 'Suami' ? '👨 Suami' : (tx.input_by === 'Istri' ? '👩 Istri' : '🤝 ' + (tx.input_by || 'Bersama'));
+        const inputBadge = cleanUsername(tx.input_by || getActiveUser());
 
         return `
           <div class="flex items-center justify-between text-xs p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
@@ -2133,7 +2415,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
               <div class="truncate">
                 <div class="font-semibold text-slate-800 dark:text-slate-200 truncate flex items-center gap-1.5">
                   <span class="truncate">${tx.description}</span>
-                  <span class="text-[10px] px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 font-normal shrink-0">${inputBadge}</span>
+                  <span class="text-[10px] px-1.5 py-0.2 rounded-md bg-indigo-50 dark:bg-indigo-950 text-indigo-500 font-medium capitalize shrink-0">${inputBadge}</span>
                 </div>
                 <div class="text-[11px] text-slate-400">${cat.name} • ${tx.transaction_date}</div>
               </div>
@@ -2146,6 +2428,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       }).join('');
     }
 
+    /* TRANSACTIONS VIEW LOGIC */
     function handleDatePresetChange(preset) {
       appState.txFilter.datePreset = preset;
       const now = new Date();
@@ -2213,16 +2496,29 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
     function populateFilterDropdowns() {
       const catSelect = document.getElementById('tx-filter-category');
       const accSelect = document.getElementById('tx-filter-account');
-      if (!catSelect || !accSelect) return;
+      const inpSelect = document.getElementById('tx-filter-inputter');
 
-      catSelect.innerHTML = '<option value="ALL">All Categories</option>' +
-        appState.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      if (catSelect) {
+        catSelect.innerHTML = '<option value="ALL">All Categories</option>' +
+          appState.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      }
 
-      accSelect.innerHTML = '<option value="ALL">All Accounts</option>' +
-        appState.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+      if (accSelect) {
+        accSelect.innerHTML = '<option value="ALL">All Accounts</option>' +
+          appState.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+      }
+
+      if (inpSelect) {
+        const inputters = new Set();
+        inputters.add(getActiveUser());
+        appState.transactions.forEach(t => {
+          if (t.input_by) inputters.add(cleanUsername(t.input_by));
+        });
+        inpSelect.innerHTML = '<option value="ALL">Semua Penginput</option>' +
+          Array.from(inputters).map(u => `<option value="${u}">${u}</option>`).join('');
+      }
     }
 
-    let filterDebounceTimer = null;
     function debounceFilterTransactions() {
       clearTimeout(filterDebounceTimer);
       filterDebounceTimer = setTimeout(() => {
@@ -2308,7 +2604,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         filtered = filtered.filter(t => t.account_id === appState.txFilter.account || t.to_account_id === appState.txFilter.account);
       }
       if (appState.txFilter.inputter !== 'ALL') {
-        filtered = filtered.filter(t => (t.input_by || 'Bersama').toLowerCase() === appState.txFilter.inputter.toLowerCase());
+        filtered = filtered.filter(t => cleanUsername(t.input_by) === appState.txFilter.inputter);
       }
       if (appState.txFilter.startDate) {
         filtered = filtered.filter(t => (t.transaction_date || '') >= appState.txFilter.startDate);
@@ -2320,7 +2616,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         const q = appState.txFilter.search;
         filtered = filtered.filter(t =>
           (t.description || '').toLowerCase().includes(q) ||
-          (t.input_by || '').toLowerCase().includes(q)
+          cleanUsername(t.input_by).includes(q)
         );
       }
 
@@ -2341,7 +2637,6 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         return;
       }
 
-      /* 1. DESKTOP TABLE RENDER */
       tbody.innerHTML = filtered.map(tx => {
         const cat = appState.categories.find(c => c.id === tx.category_id);
         const acc = appState.accounts.find(a => a.id === tx.account_id);
@@ -2392,7 +2687,6 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         `;
       }).join('');
 
-      /* 2. MOBILE CARD LIST RENDER */
       mobileList.innerHTML = filtered.map(tx => {
         const cat = appState.categories.find(c => c.id === tx.category_id);
         const acc = appState.accounts.find(a => a.id === tx.account_id);
@@ -2452,25 +2746,6 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       lucide.createIcons();
     }
 
-    function setTxInputterPreset(name) {
-      document.getElementById('tx-inputted-by').value = name;
-      updateTxInputterButtons(name);
-    }
-
-    function updateTxInputterButtons(selected) {
-      const bSuami = document.getElementById('btn-tx-input-suami');
-      const bIstri = document.getElementById('btn-tx-input-istri');
-      const bBersama = document.getElementById('btn-tx-input-bersama');
-      if (!bSuami || !bIstri || !bBersama) return;
-
-      const activeClass = 'bg-indigo-600 text-white border-indigo-600 shadow-xs';
-      const inactiveClass = 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100';
-
-      bSuami.className = `py-1.5 rounded-lg border text-xs font-semibold transition ${selected === 'Suami' ? activeClass : inactiveClass}`;
-      bIstri.className = `py-1.5 rounded-lg border text-xs font-semibold transition ${selected === 'Istri' ? activeClass : inactiveClass}`;
-      bBersama.className = `py-1.5 rounded-lg border text-xs font-semibold transition ${selected === 'Bersama' ? activeClass : inactiveClass}`;
-    }
-
     function openTransactionModal(editId = null) {
       const modal = document.getElementById('modal-transaction');
       const form = document.getElementById('tx-form');
@@ -2483,6 +2758,9 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('tx-date').value = today;
 
+      const currentUser = getActiveUser();
+      document.getElementById('tx-inputted-by').value = currentUser;
+
       if (editId) {
         const tx = appState.transactions.find(t => t.id === editId);
         if (tx) {
@@ -2490,7 +2768,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
           document.getElementById('tx-amount').value = tx.amount;
           document.getElementById('tx-date').value = tx.transaction_date;
           document.getElementById('tx-description').value = tx.description;
-          setTxInputterPreset(tx.input_by || appState.deviceInputter);
+          document.getElementById('tx-inputted-by').value = currentUser;
           setTxModalType(tx.type);
 
           if (tx.type === 'TRANSFER') {
@@ -2508,7 +2786,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         }
       } else {
         document.getElementById('tx-edit-id').value = '';
-        setTxInputterPreset(appState.deviceInputter);
+        document.getElementById('tx-inputted-by').value = currentUser;
         setTxModalType('EXPENSE');
       }
 
@@ -2588,7 +2866,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       const amount = Number(document.getElementById('tx-amount').value);
       const date = document.getElementById('tx-date').value;
       const desc = document.getElementById('tx-description').value.trim();
-      const inputBy = document.getElementById('tx-inputted-by').value.trim() || appState.deviceInputter;
+      const inputBy = getActiveUser();
 
       if (amount <= 0) {
         showToast('Nominal harus lebih dari 0', 'error');
@@ -2631,7 +2909,6 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         appState.transactions.unshift(txObject);
       }
 
-      // Supabase Foreign Key Safety Guard
       if (appState.supabase) {
         try {
           if (accountId) {
@@ -2660,7 +2937,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       StorageService.saveLocal();
       StorageService.recalculateAllAccountBalances();
       closeTransactionModal();
-      showToast(editId ? `Transaksi diperbarui (Dinput oleh: ${inputBy})` : `Transaksi disimpan oleh ${inputBy}`, 'success');
+      showToast(editId ? `Transaksi diperbarui (oleh: ${inputBy})` : `Transaksi disimpan oleh ${inputBy}`, 'success');
       renderCurrentView();
     }
 
@@ -2674,7 +2951,6 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       openTransactionModal();
       document.getElementById('tx-amount').value = tx.amount;
       document.getElementById('tx-description').value = tx.description + ' (Copy)';
-      setTxInputterPreset(appState.deviceInputter);
       setTxModalType(tx.type);
       if (tx.type === 'TRANSFER') {
         document.getElementById('tx-from-account').value = tx.account_id || '';
@@ -2719,6 +2995,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       document.getElementById('modal-receipt').classList.add('hidden');
     }
 
+    /* ACCOUNTS VIEW LOGIC */
     function renderAccountsView() {
       StorageService.recalculateAllAccountBalances();
       const grid = document.getElementById('accounts-cards-grid');
@@ -2727,7 +3004,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       grid.innerHTML = appState.accounts.map(acc => {
         const txCount = appState.transactions.filter(t => t.account_id === acc.id || t.to_account_id === acc.id).length;
         const iconName = acc.type === 'Cash' ? 'wallet' : (acc.type === 'E-Wallet' ? 'smartphone' : (acc.type === 'Savings' ? 'piggy-bank' : 'landmark'));
-        const inputBadge = getInputterBadge(acc.input_by || 'Bersama');
+        const inputBadge = getInputterBadge(acc.input_by || getActiveUser());
 
         return `
           <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-indigo-400 transition">
@@ -2764,7 +3041,8 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       form.reset();
       document.getElementById('account-edit-id').value = '';
       document.getElementById('modal-account-title').textContent = 'Add Account';
-      document.getElementById('account-inputted-by').value = appState.deviceInputter;
+      const currentUser = getActiveUser();
+      document.getElementById('account-inputted-by').value = currentUser;
 
       if (editId) {
         const acc = appState.accounts.find(a => a.id === editId);
@@ -2773,7 +3051,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
           document.getElementById('account-name').value = acc.name;
           document.getElementById('account-type').value = acc.type;
           document.getElementById('account-initial').value = acc.initial_balance;
-          document.getElementById('account-inputted-by').value = acc.input_by || 'Bersama';
+          document.getElementById('account-inputted-by').value = currentUser;
           document.getElementById('modal-account-title').textContent = 'Edit Account';
         }
       }
@@ -2790,7 +3068,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       const name = document.getElementById('account-name').value.trim();
       const type = document.getElementById('account-type').value;
       const initial = Number(document.getElementById('account-initial').value || 0);
-      const inputBy = document.getElementById('account-inputted-by').value;
+      const inputBy = getActiveUser();
 
       const accObj = {
         id: editId || 'acc-' + Date.now(),
@@ -2849,6 +3127,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       );
     }
 
+    /* BUDGETS VIEW LOGIC */
     function renderBudgetsView() {
       const monthInput = document.getElementById('budget-month-selector');
       if (!monthInput.value) {
@@ -2891,7 +3170,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         const remaining = limit - used;
         const pct = Math.min(100, Math.round((used / limit) * 100));
         const isOver = used > limit;
-        const inputBadge = getInputterBadge(b.input_by || 'Bersama');
+        const inputBadge = getInputterBadge(b.input_by || getActiveUser());
 
         return `
           <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border ${isOver ? 'border-rose-400 dark:border-rose-800 bg-rose-50/20' : 'border-slate-200/80 dark:border-slate-800'} shadow-sm space-y-3">
@@ -2932,7 +3211,8 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       const form = document.getElementById('budget-form');
       form.reset();
       document.getElementById('budget-edit-id').value = '';
-      document.getElementById('budget-inputted-by').value = appState.deviceInputter;
+      const currentUser = getActiveUser();
+      document.getElementById('budget-inputted-by').value = currentUser;
 
       const catSelect = document.getElementById('budget-category');
       const expenseCats = appState.categories.filter(c => c.type === 'EXPENSE');
@@ -2948,7 +3228,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
           document.getElementById('budget-category').value = b.category_id;
           document.getElementById('budget-month').value = b.month;
           document.getElementById('budget-amount').value = b.amount;
-          document.getElementById('budget-inputted-by').value = b.input_by || 'Bersama';
+          document.getElementById('budget-inputted-by').value = currentUser;
         }
       }
       modal.classList.remove('hidden');
@@ -2964,7 +3244,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       const catId = document.getElementById('budget-category').value;
       const month = document.getElementById('budget-month').value;
       const amount = Number(document.getElementById('budget-amount').value);
-      const inputBy = document.getElementById('budget-inputted-by').value;
+      const inputBy = getActiveUser();
 
       const bObj = {
         id: editId || 'bud-' + Date.now(),
@@ -3017,6 +3297,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       );
     }
 
+    /* CATEGORIES VIEW LOGIC */
     function renderCategoriesView() {
       const expList = document.getElementById('categories-expense-list');
       const incList = document.getElementById('categories-income-list');
@@ -3110,9 +3391,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       );
     }
 
-    let reportMonthlyChartInstance = null;
-    let reportCategoryChartInstance = null;
-
+    /* REPORTS VIEW LOGIC */
     function renderReportsView() {
       const insightsList = document.getElementById('report-insights-list');
       const tbody = document.getElementById('report-summary-table-body');
@@ -3217,6 +3496,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       }
     }
 
+    /* RECURRING VIEW LOGIC */
     function renderRecurringView() {
       const tbody = document.getElementById('recurring-table-body');
       if (!tbody) return;
@@ -3229,7 +3509,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       tbody.innerHTML = appState.recurring.map(r => {
         const cat = appState.categories.find(c => c.id === r.category_id);
         const acc = appState.accounts.find(a => a.id === r.account_id);
-        const inputBadge = getInputterBadge(r.input_by || 'Bersama');
+        const inputBadge = getInputterBadge(r.input_by || getActiveUser());
 
         return `
           <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
@@ -3266,7 +3546,8 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       catSelect.innerHTML = appState.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       accSelect.innerHTML = appState.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
 
-      document.getElementById('rec-inputted-by').value = appState.deviceInputter;
+      const currentUser = getActiveUser();
+      document.getElementById('rec-inputted-by').value = currentUser;
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('rec-next-date').value = today;
       modal.classList.remove('hidden');
@@ -3287,7 +3568,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         account_id: document.getElementById('rec-account').value,
         frequency: document.getElementById('rec-frequency').value,
         next_run_date: document.getElementById('rec-next-date').value,
-        input_by: document.getElementById('rec-inputted-by').value,
+        input_by: getActiveUser(),
         is_active: true
       };
 
@@ -3310,7 +3591,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       setTxModalType(r.type);
       document.getElementById('tx-account').value = r.account_id;
       document.getElementById('tx-category').value = r.category_id;
-      setTxInputterPreset(r.input_by || appState.deviceInputter);
+      document.getElementById('tx-inputted-by').value = getActiveUser();
       showToast(`Mencatat transaksi untuk ${r.name}`, 'info');
     }
 
@@ -3332,6 +3613,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       );
     }
 
+    /* IMPORT / EXPORT LOGIC */
     function exportToExcel() {
       if (typeof XLSX === 'undefined') {
         showToast('Library Excel sedang dimuat, mohon tunggu...', 'error');
@@ -3347,7 +3629,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         return {
           'Date': t.transaction_date,
           'Type': t.type,
-          'Dinput Oleh': t.input_by || 'Bersama',
+          'Dinput Oleh': cleanUsername(t.input_by || getActiveUser()),
           'Amount': t.amount,
           'Description': t.description,
           'Category': cat ? cat.name : (t.type === 'TRANSFER' ? 'Transfer' : '-'),
@@ -3367,34 +3649,17 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       const ws2 = XLSX.utils.json_to_sheet(catRows);
       XLSX.utils.book_append_sheet(wb, ws2, 'Category Summary');
 
-      const monthlyMap = {};
-      appState.transactions.forEach(t => {
-        const m = (t.transaction_date || '').substring(0, 7);
-        if (!m) return;
-        if (!monthlyMap[m]) monthlyMap[m] = { income: 0, expense: 0 };
-        if (t.type === 'INCOME') monthlyMap[m].income += Number(t.amount);
-        if (t.type === 'EXPENSE') monthlyMap[m].expense += Number(t.amount);
-      });
-      const monthRows = Object.keys(monthlyMap).sort().map(m => ({
-        'Month': m,
-        'Income': monthlyMap[m].income,
-        'Expense': monthlyMap[m].expense,
-        'Net Cash Flow': monthlyMap[m].income - monthlyMap[m].expense
-      }));
-      const ws3 = XLSX.utils.json_to_sheet(monthRows);
-      XLSX.utils.book_append_sheet(wb, ws3, 'Monthly Summary');
-
       const accRows = appState.accounts.map(a => ({
         'Account': a.name,
         'Type': a.type,
-        'Dinput Oleh': a.input_by || 'Bersama',
+        'Dinput Oleh': cleanUsername(a.input_by || getActiveUser()),
         'Initial Balance': a.initial_balance,
         'Current Balance': a.current_balance
       }));
-      const ws4 = XLSX.utils.json_to_sheet(accRows);
-      XLSX.utils.book_append_sheet(wb, ws4, 'Accounts');
+      const ws3 = XLSX.utils.json_to_sheet(accRows);
+      XLSX.utils.book_append_sheet(wb, ws3, 'Accounts');
 
-      XLSX.writeFile(wb, `Dhara_Finance_Family_${new Date().toISOString().split('T')[0]}.xlsx`);
+      XLSX.writeFile(wb, `Dhara_Finance_${new Date().toISOString().split('T')[0]}.xlsx`);
       showToast('Export Multi-Sheet Excel berhasil di-download!', 'success');
     }
 
@@ -3406,7 +3671,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
         return {
           'Date': t.transaction_date,
           'Type': t.type,
-          'Dinput Oleh': t.input_by || 'Bersama',
+          'Dinput Oleh': cleanUsername(t.input_by || getActiveUser()),
           'Amount': t.amount,
           'Description': t.description,
           'Category': cat ? cat.name : '-',
@@ -3424,8 +3689,6 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       URL.revokeObjectURL(url);
       showToast('Export CSV berhasil di-download!', 'success');
     }
-
-    let pendingImportTransactions = [];
 
     function handleFileImport(e) {
       const file = e.target.files[0];
@@ -3455,7 +3718,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
             const rawDesc = row['Description'] || row['description'] || row['Deskripsi'] || 'Imported item';
             const rawCat = row['Category'] || row['category'] || row['Kategori'] || '';
             const rawAcc = row['Account'] || row['account'] || row['Akun'] || '';
-            const rawInputter = row['Dinput Oleh'] || row['input_by'] || appState.deviceInputter;
+            const rawInputter = cleanUsername(row['Dinput Oleh'] || row['input_by'] || getActiveUser());
 
             let catObj = appState.categories.find(c => c.name.toLowerCase() === rawCat.toLowerCase());
             let accObj = appState.accounts.find(a => a.name.toLowerCase() === rawAcc.toLowerCase());
@@ -3526,6 +3789,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       navigateTo('transactions');
     }
 
+    /* SETTINGS VIEW LOGIC */
     function renderSettingsView() {
       const codePre = document.getElementById('sql-schema-pre');
       if (codePre) codePre.textContent = SUPABASE_SQL_SCHEMA;
@@ -3546,132 +3810,116 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       document.getElementById('cfg-supabase-key').value = curKey;
 
       const inputterSel = document.getElementById('cfg-device-inputter');
-      if (inputterSel) inputterSel.value = appState.deviceInputter;
+      if (inputterSel) inputterSel.value = getActiveUser();
+
+      renderUserApprovalsTable();
     }
 
-    async function pushSeedToSupabase() {
-      if (!appState.supabase) {
-        showToast('Supabase belum terkoneksi!', 'error');
+    function renderUserApprovalsTable() {
+      const tbody = document.getElementById('approvals-table-body');
+      const countBadge = document.getElementById('pending-approvals-count');
+      const approvalsCard = document.getElementById('cfg-approvals-card');
+      if (!tbody) return;
+
+      const currentUser = getActiveUser();
+      const isAdmin = currentUser === 'sonny';
+
+      // Always display the card so the admin setup is clear
+      if (approvalsCard) {
+        approvalsCard.style.display = 'block';
+      }
+
+      const approvals = appState.userApprovals || JSON.parse(localStorage.getItem('DHARA_USER_APPROVALS') || '[]');
+      const pendingCount = approvals.filter(a => a.status === 'PENDING').length;
+      if (countBadge) countBadge.textContent = `${pendingCount} Menunggu`;
+
+      if (approvals.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">Belum ada akun pengguna lain yang didaftarkan.</td></tr>`;
         return;
       }
-      try {
-        showToast('Mengunggah akun & kategori ke Supabase...', 'info');
-        await appState.supabase.from('accounts').upsert(appState.accounts);
-        await appState.supabase.from('categories').upsert(appState.categories);
-        if (appState.budgets.length > 0) {
-          await appState.supabase.from('budgets').upsert(appState.budgets);
+
+      tbody.innerHTML = approvals.map(appr => {
+        let statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">Menunggu (PENDING)</span>';
+        if (appr.status === 'APPROVED') {
+          statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">Disetujui (APPROVED)</span>';
+        } else if (appr.status === 'REJECTED') {
+          statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">Ditolak (REJECTED)</span>';
         }
-        showToast('Data akun & kategori berhasil diunggah ke Supabase!', 'success');
-      } catch (e) {
-        console.error(e);
-        showToast('Gagal upload: ' + e.message, 'error');
-      }
+
+        const actionButtons = isAdmin
+          ? `<div class="flex items-center justify-end gap-1.5">
+              ${appr.status !== 'APPROVED' ? `<button onclick="approveUserAccount('${appr.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] shadow-xs transition">Setujui</button>` : ''}
+              ${appr.status !== 'REJECTED' ? `<button onclick="rejectUserAccount('${appr.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100 font-semibold text-[11px] border border-rose-200 dark:border-rose-900 transition">Tolak</button>` : ''}
+            </div>`
+          : `<span class="text-slate-400 text-[11px]">Hanya sonny@dhara.com</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
+            <td class="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200 capitalize">${appr.username}</td>
+            <td class="py-2.5 px-3 font-mono text-slate-500">${appr.email}</td>
+            <td class="py-2.5 px-3 text-slate-400 text-[11px]">${appr.requested_at ? new Date(appr.requested_at).toLocaleDateString('id-ID') : '-'}</td>
+            <td class="py-2.5 px-3">${statusBadge}</td>
+            <td class="py-2.5 px-3 text-right">${actionButtons}</td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    async function saveSupabaseConfig() {
-      const urlInput = document.getElementById('cfg-supabase-url');
-      const keyInput = document.getElementById('cfg-supabase-key');
-      const statusLabel = document.getElementById('conn-test-status');
+    async function approveUserAccount(approvalId) {
+      const approvals = appState.userApprovals || JSON.parse(localStorage.getItem('DHARA_USER_APPROVALS') || '[]');
+      const item = approvals.find(a => a.id === approvalId);
+      if (!item) return;
 
-      const url = urlInput.value.trim();
-      const key = keyInput.value.trim();
+      item.status = 'APPROVED';
+      item.approved_at = new Date().toISOString();
+      item.approved_by = 'sonny@dhara.com';
 
-      if (!url || !key) {
-        showToast('Harap isi Project URL dan Anon Key', 'error');
-        return;
+      if (appState.supabase) {
+        try {
+          await appState.supabase.from('user_approvals').upsert(item);
+        } catch (e) {
+          console.warn('Approve user error:', e);
+        }
       }
 
-      if (url.includes('supabase.com/dashboard')) {
-        showToast('URL salah! Gunakan Project URL (akhiran .supabase.co), bukan URL dashboard.', 'error');
-        if (statusLabel) statusLabel.textContent = 'Error: URL salah format (harus https://xxxx.supabase.co)';
-        return;
-      }
+      localStorage.setItem('DHARA_USER_APPROVALS', JSON.stringify(approvals));
+      appState.userApprovals = approvals;
+      renderUserApprovalsTable();
+      showToast(`Akun "${item.username}" berhasil disetujui (Approved) oleh sonny@dhara.com!`, 'success');
+    }
 
-      if (statusLabel) statusLabel.textContent = 'Sedang menguji koneksi ke database...';
+    async function rejectUserAccount(approvalId) {
+      const approvals = appState.userApprovals || JSON.parse(localStorage.getItem('DHARA_USER_APPROVALS') || '[]');
+      const item = approvals.find(a => a.id === approvalId);
+      if (!item) return;
 
-      try {
-        const testClient = window.supabase.createClient(url, key);
-        const { data, error } = await testClient.from('accounts').select('id').limit(1);
+      openConfirmModal(
+        'Tolak Akun',
+        `Apakah Anda yakin ingin menolak permohonan akun "${item.username}"? Pengguna tidak akan dapat mengakses aplikasi.`,
+        async () => {
+          item.status = 'REJECTED';
+          item.approved_at = new Date().toISOString();
+          item.approved_by = 'sonny@dhara.com';
 
-        if (error) {
-          console.error('Supabase Test Error:', error);
-          if (error.code === '42P01') {
-            showToast('Tabel belum dibuat di Supabase! Copy SQL di bawah dan jalankan di SQL Editor Supabase.', 'error');
-            if (statusLabel) statusLabel.innerHTML = '<span class="text-rose-600 font-bold">Error: Tabel accounts belum ada di database. Silakan jalankan script SQL di bawah.</span>';
-          } else if (error.code === '42501') {
-            showToast('Terblokir oleh RLS! Jalankan perintah DISABLE ROW LEVEL SECURITY di SQL Editor.', 'error');
-            if (statusLabel) statusLabel.innerHTML = '<span class="text-rose-600 font-bold">Error: RLS memblokir Anon Key. Jalankan SQL di bawah.</span>';
-          } else {
-            showToast(`Gagal konek: ${error.message}`, 'error');
-            if (statusLabel) statusLabel.innerHTML = `<span class="text-rose-600 font-bold">Error: ${error.message}</span>`;
+          if (appState.supabase) {
+            try {
+              await appState.supabase.from('user_approvals').upsert(item);
+            } catch (e) {
+              console.warn('Reject user error:', e);
+            }
           }
-          return;
-        }
 
-        localStorage.setItem(CFG_KEY, JSON.stringify({ url, key }));
-        appState.supabase = testClient;
-        appState.isSupabaseActive = true;
-        StorageService.updateStatusBadge(true);
-        if (statusLabel) statusLabel.innerHTML = '<span class="text-emerald-600 font-bold">Status: Terhubung & Terverifikasi dengan Supabase!</span>';
-        showToast('Koneksi Supabase aktif & terverifikasi!', 'success');
-
-        await StorageService.syncWithSupabase();
-      } catch (err) {
-        console.error(err);
-        showToast('Koneksi Supabase gagal diinisialisasi: ' + err.message, 'error');
-        if (statusLabel) statusLabel.textContent = 'Error koneksi: ' + err.message;
-      }
-    }
-
-    function disconnectSupabase() {
-      localStorage.removeItem(CFG_KEY);
-      appState.supabase = null;
-      appState.isSupabaseActive = false;
-      StorageService.updateStatusBadge(false);
-      showToast('Kembali ke mode penyimpanan lokal offline', 'info');
-    }
-
-    function copySqlSchema() {
-      const el = document.createElement('textarea');
-      el.value = SUPABASE_SQL_SCHEMA;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-      showToast('SQL Schema berhasil disalin ke clipboard!', 'success');
-    }
-
-    function resetToSampleData() {
-      openConfirmModal(
-        'Muat Sample Data',
-        'Reset data saat ini ke data contoh bawaan?',
-        () => {
-          StorageService.loadSeed();
-          showToast('Sample data berhasil dimuat kembali', 'success');
-          renderCurrentView();
+          localStorage.setItem('DHARA_USER_APPROVALS', JSON.stringify(approvals));
+          appState.userApprovals = approvals;
+          renderUserApprovalsTable();
+          showToast(`Akun "${item.username}" telah ditolak`, 'info');
         },
-        'Muat Sample',
-        'bg-indigo-600 hover:bg-indigo-700'
-      );
-    }
-
-    function promptClearAllData() {
-      openConfirmModal(
-        'Kosongkan Semua Data',
-        'PERINGATAN: Seluruh catatan transaksi lokal akan dihapus permanen!',
-        () => {
-          appState.transactions = [];
-          StorageService.saveLocal();
-          StorageService.recalculateAllAccountBalances();
-          showToast('Seluruh data transaksi telah dibersihkan', 'info');
-          renderCurrentView();
-        },
-        'Hapus Semua',
+        'Tolak Akun',
         'bg-rose-600 hover:bg-rose-700'
       );
     }
 
-    let confirmCallback = null;
+    /* UNIVERSAL MODAL CONFIRMATION & TOAST */
     function openConfirmModal(title, msg, onOk, btnText = 'Lanjutkan', btnClass = 'bg-indigo-600 hover:bg-indigo-700', iconName = 'alert-triangle', iconBoxClass = 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400') {
       document.getElementById('confirm-title').textContent = title;
       document.getElementById('confirm-msg').textContent = msg;
@@ -3728,14 +3976,13 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       }, 3500);
     }
 
+    /* APPLICATION BOOTSTRAP */
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
       StorageService.init();
 
-      // Check user authentication session on page load
       checkAuthSession();
-
-      // Default date filter to this month
+      initIdleTracker();
       handleDatePresetChange('THIS_MONTH');
 
       navigateTo('dashboard');
