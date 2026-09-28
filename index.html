@@ -4,6 +4,60 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dhara - Personal & Family Finance</title>
+  
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Dhara Finance">
+  <meta name="application-name" content="Dhara Finance">
+  <meta name="description" content="Aplikasi pencatatan keuangan harian & keluarga modern dengan sinkronisasi cloud.">
+
+  <!-- Favicon & Touch Icon (High-Res SVG Wallet & Growth Icon) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%234338ca'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='128' fill='url(%23grad)'/%3E%3Cpath d='M120 180c0-22.1 17.9-40 40-40h200c22.1 0 40 17.9 40 40v30H120v-30z' fill='%23ffffff' opacity='0.7'/%3E%3Crect x='100' y='200' width='312' height='180' rx='32' fill='%23ffffff'/%3E%3Ccircle cx='340' cy='290' r='24' fill='%234f46e5'/%3E%3Cpath d='M170 330l50-50 40 40 70-70' fill='none' stroke='%2310b981' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M300 250h30v30' fill='none' stroke='%2310b981' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%234338ca'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='128' fill='url(%23grad)'/%3E%3Cpath d='M120 180c0-22.1 17.9-40 40-40h200c22.1 0 40 17.9 40 40v30H120v-30z' fill='%23ffffff' opacity='0.7'/%3E%3Crect x='100' y='200' width='312' height='180' rx='32' fill='%23ffffff'/%3E%3Ccircle cx='340' cy='290' r='24' fill='%234f46e5'/%3E%3Cpath d='M170 330l50-50 40 40 70-70' fill='none' stroke='%2310b981' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M300 250h30v30' fill='none' stroke='%2310b981' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+  <!-- Embedded Web App Manifest for Instant Add to Home Screen -->
+  <link rel="manifest" id="manifest-link">
+  <script>
+    (function() {
+      const iconSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%234338ca'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='128' fill='url(%23grad)'/%3E%3Cpath d='M120 180c0-22.1 17.9-40 40-40h200c22.1 0 40 17.9 40 40v30H120v-30z' fill='%23ffffff' opacity='0.7'/%3E%3Crect x='100' y='200' width='312' height='180' rx='32' fill='%23ffffff'/%3E%3Ccircle cx='340' cy='290' r='24' fill='%234f46e5'/%3E%3Cpath d='M170 330l50-50 40 40 70-70' fill='none' stroke='%2310b981' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M300 250h30v30' fill='none' stroke='%2310b981' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E`;
+      
+      const manifest = {
+        name: "Dhara - Personal & Family Finance",
+        short_name: "Dhara",
+        description: "Catat transaksi keuangan harian dan kelola budget keluarga",
+        start_url: "./",
+        display: "standalone",
+        orientation: "portrait",
+        background_color: "#0f172a",
+        theme_color: "#4f46e5",
+        icons: [
+          {
+            src: iconSvg,
+            sizes: "192x192",
+            type: "image/svg+xml",
+            purpose: "any maskable"
+          },
+          {
+            src: iconSvg,
+            sizes: "512x512",
+            type: "image/svg+xml",
+            purpose: "any maskable"
+          }
+        ]
+      };
+      
+      const stringManifest = JSON.stringify(manifest);
+      const blob = new Blob([stringManifest], { type: 'application/manifest+json' });
+      const manifestURL = URL.createObjectURL(blob);
+      const manifestTag = document.getElementById('manifest-link');
+      if (manifestTag) manifestTag.setAttribute('href', manifestURL);
+    })();
+  </script>
+
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,26 +124,12 @@
           <i data-lucide="wallet-cards" class="w-7 h-7"></i>
         </div>
         <h2 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Dhara Finance</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Akses Buku Keuangan via Supabase Auth</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Manajemen Keuangan Keluarga</p>
       </div>
 
       <div class="p-6 md:p-8 pt-0 space-y-4">
         <!-- Supabase Email & Password Form -->
         <form id="form-auth-email" onsubmit="handleEmailAuth(event)" class="space-y-4">
-          <!-- User Role Selector -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">MASUK SEBAGAI:</label>
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button" onclick="selectAuthRole('Suami')" id="auth-role-suami" class="py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 dark:border-indigo-600">
-                <span>👨 Suami</span>
-              </button>
-              <button type="button" onclick="selectAuthRole('Istri')" id="auth-role-istri" class="py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
-                <span>👩 Istri</span>
-              </button>
-            </div>
-            <input type="hidden" id="auth-selected-role" value="Suami">
-          </div>
-
           <!-- Email Input -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">EMAIL</label>
@@ -1424,22 +1464,6 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       }
     }
 
-    function selectAuthRole(role) {
-      document.getElementById('auth-selected-role').value = role;
-      const bSuami = document.getElementById('auth-role-suami');
-      const bIstri = document.getElementById('auth-role-istri');
-      const activeClass = 'py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 dark:border-indigo-600';
-      const inactiveClass = 'py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800';
-
-      if (role === 'Suami') {
-        bSuami.className = activeClass;
-        bIstri.className = inactiveClass;
-      } else {
-        bIstri.className = activeClass;
-        bSuami.className = inactiveClass;
-      }
-    }
-
     function toggleAuthMode() {
       isRegisterMode = !isRegisterMode;
       const toggleBtn = document.getElementById('auth-mode-toggle');
@@ -1473,7 +1497,7 @@ CREATE INDEX IF NOT EXISTS idx_tx_input_by ON transactions(input_by);
       e.preventDefault();
       const email = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value;
-      const role = document.getElementById('auth-selected-role').value;
+      const role = localStorage.getItem('KASTARA_DEVICE_USER') || 'Suami';
       const remember = document.getElementById('auth-remember-me').checked;
       const errBox = document.getElementById('auth-error-msg');
       errBox.classList.add('hidden');
