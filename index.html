@@ -268,7 +268,7 @@
         </button>
         <button onclick="navigateFromDrawer('budgets')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
           <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-500"></i>
-          <span>Monthly Budgets</span>
+          <span>Budget & Limit</span>
         </button>
         <button onclick="navigateFromDrawer('categories')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
           <i data-lucide="tag" class="w-4 h-4 text-indigo-500"></i>
@@ -580,7 +580,6 @@
                   <th class="py-3 px-4">Account</th>
                   <th class="py-3 px-4">Dinput Oleh</th>
                   <th class="py-3 px-4 text-right">Amount</th>
-                  <th class="py-3 px-4 text-center">Receipt</th>
                   <th class="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -617,15 +616,29 @@
       <section id="view-budgets" class="view-panel hidden space-y-6 max-w-7xl mx-auto fade-in">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Monthly Budgets</h2>
-            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Kendalikan pengeluaran bulanan keluarga</p>
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Budget Limits per Kategori</h2>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Atur 1 kali, berlaku seterusnya untuk semua bulan</p>
           </div>
           <div class="flex items-center gap-3">
-            <input type="month" id="budget-month-selector" onchange="renderBudgetsView()" class="py-2 px-3 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-semibold text-slate-500 hidden sm:inline">Pemakaian bulan:</span>
+              <input type="month" id="budget-month-selector" onchange="renderBudgetsView()" class="py-2 px-3 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
             <button onclick="openBudgetModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
               <i data-lucide="plus" class="w-4 h-4"></i>
               <span>Set Budget</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Info: Atur 1 Kali, Berlaku Seterusnya -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5 border border-indigo-200 dark:border-indigo-900/50 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+            <i data-lucide="infinity" class="w-5 h-5"></i>
+          </div>
+          <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <p class="font-bold text-slate-800 dark:text-slate-100 mb-0.5">Atur 1 Kali, Berlaku Seterusnya</p>
+            <p>Tidak perlu membuat budget baru setiap pergantian bulan - limit per kategori otomatis aktif terus. Dana terpakai dihitung dari transaksi pada bulan yang sedang dipilih dan <strong>otomatis reset ke Rp 0</strong> begitu masuk bulan baru.</p>
           </div>
         </div>
 
@@ -985,7 +998,7 @@
       </button>
       <button onclick="navigateTo('transactions')" data-mobile-nav="transactions" class="flex flex-col items-center justify-center w-12 py-1 text-slate-500 dark:text-slate-400">
         <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
-        <span class="text-[10px] font-medium mt-0.5">Txns</span>
+        <span class="text-[10px] font-medium mt-0.5">Transactions</span>
       </button>
 
       <!-- Center Floating Plus Button -->
@@ -1075,18 +1088,6 @@
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">DESCRIPTION</label>
           <input id="tx-description" type="text" placeholder="e.g. Belanja dapur, bensin, gaji" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">ATTACHMENT / STRUK</label>
-          <div class="flex items-center gap-3">
-            <label class="cursor-pointer px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-xs font-medium flex items-center gap-1.5">
-              <i data-lucide="paperclip" class="w-4 h-4 text-slate-400"></i>
-              <span>Pilih Gambar</span>
-              <input id="tx-attachment-input" type="file" accept="image/*" onchange="handleReceiptFile(event)" class="hidden">
-            </label>
-            <div id="tx-attachment-preview" class="text-xs text-slate-500 truncate flex-1">Tidak ada file dipilih</div>
-          </div>
         </div>
 
         <div class="pt-2">
@@ -1188,15 +1189,18 @@
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">CATEGORY</label>
-          <select id="budget-category" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></select>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">MONTH</label>
-          <input id="budget-month" type="month" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+          <select id="budget-category" required onchange="prefillBudgetAmount()" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></select>
+          <p id="budget-existing-hint" class="hidden mt-1.5 text-[11px] text-amber-600 dark:text-amber-400">
+            Kategori ini sudah punya limit — simpan untuk memperbarui limit tersebut.
+          </p>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">LIMIT AMOUNT (RP)</label>
           <input id="budget-amount" type="number" min="1" step="any" required placeholder="1000000" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">
+          <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+            <i data-lucide="infinity" class="w-3 h-3"></i>
+            <span>Berlaku otomatis untuk semua bulan - dana terpakai reset tiap bulan baru.</span>
+          </p>
         </div>
         <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm transition">
           Save Budget
@@ -1268,21 +1272,6 @@
     </div>
   </div>
 
-  <!-- MODAL: RECEIPT PREVIEW -->
-  <div id="modal-receipt" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/80 modal-backdrop">
-    <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden fade-in">
-      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Receipt Attachment Preview</h3>
-        <button onclick="closeReceiptModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-      <div class="p-4 flex items-center justify-center max-h-[70vh] overflow-auto">
-        <img id="receipt-preview-img" src="" alt="Receipt" class="max-h-full max-w-full rounded-xl object-contain">
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL: UNIVERSAL CONFIRMATION -->
   <div id="modal-confirm" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 modal-backdrop">
     <div class="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 fade-in text-center">
@@ -1346,7 +1335,7 @@
 
     function triggerAutoLogout() {
       // Tutup seluruh modal jika ada yang sedang terbuka
-      const allModals = ['modal-transaction', 'modal-account', 'modal-category', 'modal-budget', 'modal-recurring', 'modal-receipt', 'modal-confirm'];
+      const allModals = ['modal-transaction', 'modal-account', 'modal-category', 'modal-budget', 'modal-recurring', 'modal-confirm'];
       allModals.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add('hidden');
@@ -1424,7 +1413,6 @@
     }
 
     let isRegisterMode = false;
-    let currentReceiptBase64 = null;
     let filterDebounceTimer = null;
     let confirmCallback = null;
     let pendingImportTransactions = [];
@@ -1475,11 +1463,13 @@ CREATE TABLE IF NOT EXISTS transactions (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. BUDGETS TABLE
+-- 4. BUDGETS TABLE (limit per kategori: atur 1 kali, berlaku seterusnya)
+-- Catatan: kolom "month" dipertahankan hanya untuk kompatibilitas database lama.
+-- Aplikasi selalu menulis 'ALL' karena limit kini berlaku untuk semua bulan.
 CREATE TABLE IF NOT EXISTS budgets (
   id TEXT PRIMARY KEY,
   category_id TEXT REFERENCES categories(id) ON DELETE CASCADE,
-  month VARCHAR(7) NOT NULL,
+  month VARCHAR(7) NOT NULL DEFAULT 'ALL',
   amount NUMERIC(18,2) NOT NULL CHECK (amount > 0),
   input_by VARCHAR(100) DEFAULT 'user',
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -1882,6 +1872,49 @@ ON CONFLICT (username) DO NOTHING;
       );
     }
 
+    /* BUDGET PER KATEGORI - SATU LIMIT UNTUK SEMUA BULAN */
+    function budgetRecency(b) {
+      if (b.updated_at) {
+        const t = Date.parse(b.updated_at);
+        if (!isNaN(t)) return t;
+      }
+      const idMatch = String(b.id || '').match(/(\d{10,})/);
+      if (idMatch) return Number(idMatch[1]);
+      if (b.created_at) {
+        const t = Date.parse(b.created_at);
+        if (!isNaN(t)) return t;
+      }
+      return 0;
+    }
+
+    // Gabungkan budget lama yang tersimpan per bulan menjadi satu limit per kategori.
+    // Mengembalikan daftar ID duplikat yang dibuang agar bisa dibersihkan dari cloud.
+    function normalizeBudgets() {
+      const grouped = {};
+      const removedIds = [];
+
+      (appState.budgets || []).forEach(b => {
+        const key = b.category_id || b.id;
+        const ts = budgetRecency(b);
+        if (!grouped[key]) {
+          grouped[key] = { item: b, ts };
+        } else if (ts >= grouped[key].ts) {
+          if (grouped[key].item.id) removedIds.push(grouped[key].item.id);
+          grouped[key] = { item: b, ts };
+        } else if (b.id) {
+          removedIds.push(b.id);
+        }
+      });
+
+      appState.budgets = Object.keys(grouped).map(k => grouped[k].item);
+      return removedIds;
+    }
+
+    // Payload cloud: kolom month diisi 'ALL' untuk kompatibilitas tabel versi lama
+    function budgetCloudPayload() {
+      return appState.budgets.map(b => Object.assign({}, b, { month: 'ALL' }));
+    }
+
     /* STORAGE SERVICE & STATE PERSISTENCE */
     const StorageService = {
       init() {
@@ -1900,6 +1933,9 @@ ON CONFLICT (username) DO NOTHING;
         } else {
           this.loadSeed();
         }
+
+        // Pastikan hanya ada satu limit per kategori
+        normalizeBudgets();
 
         let url = DEFAULT_SUPABASE_URL;
         let key = DEFAULT_SUPABASE_KEY;
@@ -2003,6 +2039,15 @@ ON CONFLICT (username) DO NOTHING;
           const { data: budgets } = await appState.supabase.from('budgets').select('*');
           if (budgets && budgets.length > 0) appState.budgets = budgets;
 
+          // Rapikan duplikat budget lama (per bulan) menjadi 1 limit per kategori
+          const removedBudgetIds = normalizeBudgets();
+          if (removedBudgetIds.length > 0) {
+            try { await appState.supabase.from('budgets').delete().in('id', removedBudgetIds); } catch (e) {}
+          }
+          if (appState.budgets.length > 0) {
+            try { await appState.supabase.from('budgets').upsert(budgetCloudPayload()); } catch (e) {}
+          }
+
           const { data: recurring } = await appState.supabase.from('recurring_transactions').select('*');
           if (recurring && recurring.length > 0) appState.recurring = recurring;
 
@@ -2077,7 +2122,7 @@ ON CONFLICT (username) DO NOTHING;
               showToast('Menyinkronkan ke Supabase...', 'info');
               await appState.supabase.from('accounts').upsert(appState.accounts);
               await appState.supabase.from('transactions').upsert(appState.transactions);
-              await appState.supabase.from('budgets').upsert(appState.budgets);
+              await appState.supabase.from('budgets').upsert(budgetCloudPayload());
               await appState.supabase.from('recurring_transactions').upsert(appState.recurring);
             } catch (err) {
               console.warn('Sync inputter error:', err);
@@ -2122,7 +2167,7 @@ ON CONFLICT (username) DO NOTHING;
         dashboard: 'Dashboard',
         transactions: 'Transactions',
         accounts: 'Accounts & Wallets',
-        budgets: 'Monthly Budgets',
+        budgets: 'Budget & Limit',
         categories: 'Categories',
         reports: 'Reports & Analytics',
         recurring: 'Recurring & Bills',
@@ -2204,7 +2249,7 @@ ON CONFLICT (username) DO NOTHING;
         .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
       document.getElementById('dash-total-expense').textContent = formatIDR(totalExpense);
 
-      const activeBudgets = appState.budgets.filter(b => b.month === currentMonthStr);
+      const activeBudgets = appState.budgets; // limit berlaku untuk semua bulan
       const totalBudgetLimit = activeBudgets.reduce((sum, b) => sum + (Number(b.amount) || 0), 0);
 
       let totalBudgetedExpenses = 0;
@@ -2367,18 +2412,18 @@ ON CONFLICT (username) DO NOTHING;
       const container = document.getElementById('dash-budget-progress-list');
       if (!container) return;
 
-      const monthlyBudgets = appState.budgets.filter(b => b.month === currentMonthStr);
-      if (monthlyBudgets.length === 0) {
+      const activeBudgets = appState.budgets;
+      if (activeBudgets.length === 0) {
         container.innerHTML = `
           <div class="py-8 text-center text-slate-400 text-xs">
-            <p>Belum ada target budget bulan ini.</p>
-            <button onclick="navigateTo('budgets')" class="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">Buat Budget</button>
+            <p>Belum ada limit budget kategori.</p>
+            <button onclick="navigateTo('budgets')" class="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">Atur Budget</button>
           </div>
         `;
         return;
       }
 
-      container.innerHTML = monthlyBudgets.map(b => {
+      container.innerHTML = activeBudgets.map(b => {
         const cat = appState.categories.find(c => c.id === b.category_id) || { name: 'Kategori', color: '#6366f1' };
         const used = thisMonthTxns
           .filter(t => t.type === 'EXPENSE' && t.category_id === b.category_id)
@@ -2668,12 +2713,12 @@ ON CONFLICT (username) DO NOTHING;
       if (filtered.length === 0) {
         const emptyHtml = `
           <div class="text-center py-12 px-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-400">
-            <i data-lucide="receipt" class="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600 stroke-1"></i>
+            <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600 stroke-1"></i>
             <p class="font-medium text-xs md:text-sm text-slate-600 dark:text-slate-300">Belum ada transaksi yang sesuai filter.</p>
             <button onclick="openTransactionModal()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-sm active:scale-95 transition">Catat Transaksi Baru</button>
           </div>
         `;
-        tbody.innerHTML = `<tr><td colspan="9" class="p-6">${emptyHtml}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6">${emptyHtml}</td></tr>`;
         mobileList.innerHTML = emptyHtml;
         lucide.createIcons();
         return;
@@ -2696,9 +2741,6 @@ ON CONFLICT (username) DO NOTHING;
             : '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">Transfer</span>');
 
         const inputBadge = getInputterBadge(tx.input_by);
-        const receiptBtn = tx.attachment
-          ? `<button onclick="viewReceipt('${tx.id}')" class="p-1.5 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950" title="View Receipt"><i data-lucide="image" class="w-4 h-4"></i></button>`
-          : '<span class="text-slate-300 dark:text-slate-700">-</span>';
 
         return `
           <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
@@ -2717,7 +2759,6 @@ ON CONFLICT (username) DO NOTHING;
             <td class="py-3 px-4 text-right whitespace-nowrap ${amountColor}">
               ${sign}${formatIDR(tx.amount)}
             </td>
-            <td class="py-3 px-4 text-center whitespace-nowrap">${receiptBtn}</td>
             <td class="py-3 px-4 text-right whitespace-nowrap">
               <div class="flex items-center justify-end gap-1">
                 <button onclick="duplicateTransaction('${tx.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800" title="Duplicate"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
@@ -2772,7 +2813,6 @@ ON CONFLICT (username) DO NOTHING;
             <div class="pt-2 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs">
               <div class="flex items-center gap-1.5 flex-wrap">
                 ${inputBadge}
-                ${tx.attachment ? `<button onclick="viewReceipt('${tx.id}')" class="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-full"><i data-lucide="image" class="w-3 h-3"></i> Struk</button>` : ''}
               </div>
 
               <div class="flex items-center gap-1">
@@ -2792,8 +2832,6 @@ ON CONFLICT (username) DO NOTHING;
       const modal = document.getElementById('modal-transaction');
       const form = document.getElementById('tx-form');
       form.reset();
-      currentReceiptBase64 = null;
-      document.getElementById('tx-attachment-preview').textContent = 'Tidak ada file dipilih';
 
       populateTransactionFormSelects();
 
@@ -2819,11 +2857,6 @@ ON CONFLICT (username) DO NOTHING;
           } else {
             document.getElementById('tx-account').value = tx.account_id || '';
             document.getElementById('tx-category').value = tx.category_id || '';
-          }
-
-          if (tx.attachment) {
-            currentReceiptBase64 = tx.attachment;
-            document.getElementById('tx-attachment-preview').textContent = 'File struk terlampir';
           }
         }
       } else {
@@ -2889,18 +2922,6 @@ ON CONFLICT (username) DO NOTHING;
       populateTransactionFormSelects();
     }
 
-    function handleReceiptFile(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        currentReceiptBase64 = e.target.result;
-        document.getElementById('tx-attachment-preview').textContent = file.name;
-        showToast('Receipt file berhasil dimuat', 'success');
-      };
-      reader.readAsDataURL(file);
-    }
-
     async function handleSaveTransaction(e) {
       e.preventDefault();
       const editId = document.getElementById('tx-edit-id').value;
@@ -2940,7 +2961,6 @@ ON CONFLICT (username) DO NOTHING;
         category_id: categoryId,
         amount: amount,
         description: desc,
-        attachment: currentReceiptBase64,
         input_by: inputBy
       };
 
@@ -3023,18 +3043,6 @@ ON CONFLICT (username) DO NOTHING;
         'Hapus',
         'bg-rose-600 hover:bg-rose-700'
       );
-    }
-
-    function viewReceipt(txId) {
-      const tx = appState.transactions.find(t => t.id === txId);
-      if (tx && tx.attachment) {
-        document.getElementById('receipt-preview-img').src = tx.attachment;
-        document.getElementById('modal-receipt').classList.remove('hidden');
-      }
-    }
-
-    function closeReceiptModal() {
-      document.getElementById('modal-receipt').classList.add('hidden');
     }
 
     /* ACCOUNTS VIEW LOGIC */
@@ -3178,7 +3186,9 @@ ON CONFLICT (username) DO NOTHING;
       }
       const selectedMonth = monthInput.value;
 
-      const activeBudgets = appState.budgets.filter(b => b.month === selectedMonth);
+      // Limit budget: semua limit aktif untuk bulan apa pun,
+      // yang berubah hanya angka "terpakai" mengikuti bulan yang dipilih.
+      const activeBudgets = appState.budgets;
       const list = document.getElementById('budgets-category-list');
 
       const monthTxns = appState.transactions.filter(t => (t.transaction_date || '').startsWith(selectedMonth));
@@ -3189,7 +3199,8 @@ ON CONFLICT (username) DO NOTHING;
         list.innerHTML = `
           <div class="p-12 text-center rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-400 text-sm">
             <i data-lucide="target" class="w-10 h-10 mx-auto mb-2 stroke-1"></i>
-            <p class="font-medium">Belum ada target budget untuk bulan ${selectedMonth}.</p>
+            <p class="font-medium">Belum ada limit budget kategori.</p>
+            <p class="text-xs mt-1">Atur sekali saja - limit otomatis berlaku setiap bulan.</p>
             <button onclick="openBudgetModal()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs">Set Budget Pertama</button>
           </div>
         `;
@@ -3233,10 +3244,10 @@ ON CONFLICT (username) DO NOTHING;
               <div class="h-full rounded-full transition-all duration-500 ${isOver ? 'bg-rose-500' : (pct > 80 ? 'bg-amber-500' : 'bg-indigo-600')}" style="width: ${pct}%"></div>
             </div>
 
-            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
-              <span>Terpakai: <strong class="text-slate-900 dark:text-white">${formatIDR(used)}</strong> (${pct}%)</span>
+            <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <span>Terpakai (${selectedMonth}): <strong class="text-slate-900 dark:text-white">${formatIDR(used)}</strong> (${pct}%)</span>
               <span>Tersisa: <strong class="${remaining < 0 ? 'text-rose-600' : 'text-emerald-600'}">${formatIDR(remaining)}</strong></span>
-              <span>Batas: <strong class="text-slate-900 dark:text-white">${formatIDR(limit)}</strong></span>
+              <span>Limit: <strong class="text-slate-900 dark:text-white">${formatIDR(limit)}</strong></span>
             </div>
           </div>
         `;
@@ -3253,6 +3264,7 @@ ON CONFLICT (username) DO NOTHING;
       const form = document.getElementById('budget-form');
       form.reset();
       document.getElementById('budget-edit-id').value = '';
+      document.getElementById('modal-budget-title').textContent = 'Set Category Budget';
       const currentUser = getActiveUser();
       document.getElementById('budget-inputted-by').value = currentUser;
 
@@ -3260,20 +3272,34 @@ ON CONFLICT (username) DO NOTHING;
       const expenseCats = appState.categories.filter(c => c.type === 'EXPENSE');
       catSelect.innerHTML = expenseCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
-      const now = new Date();
-      document.getElementById('budget-month').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
       if (editId) {
         const b = appState.budgets.find(item => item.id === editId);
         if (b) {
           document.getElementById('budget-edit-id').value = b.id;
           document.getElementById('budget-category').value = b.category_id;
-          document.getElementById('budget-month').value = b.month;
           document.getElementById('budget-amount').value = b.amount;
-          document.getElementById('budget-inputted-by').value = currentUser;
+          document.getElementById('modal-budget-title').textContent = 'Edit Limit Kategori';
         }
       }
+
+      // Tampilkan limit yang sudah ada agar tidak perlu mengetik ulang nominal lama
+      prefillBudgetAmount();
       modal.classList.remove('hidden');
+    }
+
+    function prefillBudgetAmount() {
+      const catSelect = document.getElementById('budget-category');
+      const amountInput = document.getElementById('budget-amount');
+      const hint = document.getElementById('budget-existing-hint');
+      if (!catSelect || !amountInput) return;
+
+      const editId = document.getElementById('budget-edit-id').value;
+      const existing = appState.budgets.find(b => b.category_id === catSelect.value);
+
+      if (!editId) {
+        amountInput.value = existing ? existing.amount : '';
+      }
+      if (hint) hint.classList.toggle('hidden', !existing || !!editId);
     }
 
     function closeBudgetModal() {
@@ -3284,38 +3310,46 @@ ON CONFLICT (username) DO NOTHING;
       e.preventDefault();
       const editId = document.getElementById('budget-edit-id').value;
       const catId = document.getElementById('budget-category').value;
-      const month = document.getElementById('budget-month').value;
       const amount = Number(document.getElementById('budget-amount').value);
       const inputBy = getActiveUser();
 
+      if (!catId || !amount || amount <= 0) {
+        showToast('Pilih kategori dan isi limit lebih dari 0', 'error');
+        return;
+      }
+
+      // Satu limit per kategori - berlaku untuk semua bulan
       const bObj = {
         id: editId || 'bud-' + Date.now(),
         category_id: catId,
-        month,
         amount,
         input_by: inputBy
       };
 
-      if (editId) {
-        const idx = appState.budgets.findIndex(b => b.id === editId);
-        if (idx !== -1) appState.budgets[idx] = bObj;
+      // Buang duplikat kategori yang sama (sisa data budget lama per bulan)
+      const duplicates = appState.budgets.filter(b => b.category_id === catId && b.id !== bObj.id);
+      appState.budgets = appState.budgets.filter(b => !(b.category_id === catId && b.id !== bObj.id));
+
+      const idx = appState.budgets.findIndex(b => b.id === bObj.id);
+      if (idx !== -1) {
+        appState.budgets[idx] = bObj;
       } else {
-        const existingIdx = appState.budgets.findIndex(b => b.category_id === catId && b.month === month);
-        if (existingIdx !== -1) {
-          appState.budgets[existingIdx].amount = amount;
-          appState.budgets[existingIdx].input_by = inputBy;
-        } else {
-          appState.budgets.push(bObj);
-        }
+        appState.budgets.push(bObj);
       }
 
       if (appState.supabase) {
-        try { await appState.supabase.from('budgets').upsert(bObj); } catch (err) {}
+        try {
+          if (duplicates.length > 0) {
+            await appState.supabase.from('budgets').delete().in('id', duplicates.map(d => d.id));
+          }
+          const { error } = await appState.supabase.from('budgets').upsert(Object.assign({}, bObj, { month: 'ALL' }));
+          if (error) console.warn('Supabase budget save error:', error);
+        } catch (err) { console.warn(err); }
       }
 
       StorageService.saveLocal();
       closeBudgetModal();
-      showToast('Budget bulanan berhasil disimpan', 'success');
+      showToast('Limit budget tersimpan & berlaku otomatis tiap bulan', 'success');
       renderCurrentView();
     }
 
@@ -3324,14 +3358,14 @@ ON CONFLICT (username) DO NOTHING;
     function promptDeleteBudget(id) {
       openConfirmModal(
         'Hapus Budget',
-        'Hapus target budget bulanan ini? Tindakan ini tidak dapat dibatalkan.',
+        'Hapus limit budget kategori ini? Limit akan dihapus untuk semua bulan.',
         async () => {
           appState.budgets = appState.budgets.filter(b => b.id !== id);
           if (appState.supabase) {
             try { await appState.supabase.from('budgets').delete().eq('id', id); } catch (e) {}
           }
           StorageService.saveLocal();
-          showToast('Budget berhasil dihapus', 'success');
+          showToast('Limit budget berhasil dihapus', 'success');
           renderCurrentView();
         },
         'Hapus',
