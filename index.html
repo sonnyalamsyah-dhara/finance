@@ -5244,12 +5244,21 @@ ON CONFLICT (username) DO NOTHING;
           statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">Ditolak (REJECTED)</span>';
         }
 
-        const actionButtons = isAdmin
-          ? `<div class="flex items-center justify-end gap-1.5">
+        const isSuperAdminRow = cleanUsername(appr.username) === 'sonny';
+        let actionButtons;
+        if (!isAdmin) {
+          actionButtons = `<span class="text-slate-400 text-[11px]">Hanya sonny@dhara.com</span>`;
+        } else if (isSuperAdminRow) {
+          // Akun admin utama tidak boleh ditolak (bisa mengunci diri sendiri dari aplikasi).
+          actionButtons = appr.status === 'APPROVED'
+            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400"><i data-lucide="shield-check" class="w-3 h-3"></i> Admin Utama</span>`
+            : `<button onclick="approveUserAccount('${appr.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] shadow-xs transition">Setujui</button>`;
+        } else {
+          actionButtons = `<div class="flex items-center justify-end gap-1.5">
               ${appr.status !== 'APPROVED' ? `<button onclick="approveUserAccount('${appr.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] shadow-xs transition">Setujui</button>` : ''}
               ${appr.status !== 'REJECTED' ? `<button onclick="rejectUserAccount('${appr.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100 font-semibold text-[11px] border border-rose-200 dark:border-rose-900 transition">Tolak</button>` : ''}
-            </div>`
-          : `<span class="text-slate-400 text-[11px]">Hanya sonny@dhara.com</span>`;
+            </div>`;
+        }
 
         return `
           <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
@@ -5261,6 +5270,7 @@ ON CONFLICT (username) DO NOTHING;
           </tr>
         `;
       }).join('');
+      lucide.createIcons();
     }
 
     async function approveUserAccount(approvalId) {
@@ -5290,6 +5300,12 @@ ON CONFLICT (username) DO NOTHING;
       const approvals = appState.userApprovals || JSON.parse(localStorage.getItem('DHARA_USER_APPROVALS') || '[]');
       const item = approvals.find(a => a.id === approvalId);
       if (!item) return;
+
+      // Pengaman: akun admin utama tidak boleh ditolak.
+      if (cleanUsername(item.username) === 'sonny') {
+        showToast('Akun admin utama (sonny) tidak bisa ditolak.', 'error');
+        return;
+      }
 
       openConfirmModal(
         'Tolak Akun',
