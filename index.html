@@ -641,6 +641,7 @@
         </div>
 
         <div id="budget-bulk-bar"></div>
+        <div id="budget-orphan-bar"></div>
 
         <!-- Info: Atur 1 Kali, Berlaku Seterusnya -->
         <div class="p-4 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5 border border-indigo-200 dark:border-indigo-900/50 flex items-start gap-3">
@@ -3827,6 +3828,17 @@ ON CONFLICT (username) DO NOTHING;
       const bulkBarEl = document.getElementById('budget-bulk-bar');
       if (bulkBarEl) bulkBarEl.innerHTML = bulkBarHtml('budgets');
 
+      // Deteksi budget yatim: kategorinya sudah tidak ada (mis. kategori lama sudah dihapus)
+      const orphanedBudgets = activeBudgets.filter(b => !appState.categories.some(c => c.id === b.category_id));
+      const orphanBarEl = document.getElementById('budget-orphan-bar');
+      if (orphanBarEl) {
+        orphanBarEl.innerHTML = orphanedBudgets.length > 0 ? `
+          <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span class="text-amber-700 dark:text-amber-300 font-medium">⚠️ ${orphanedBudgets.length} limit budget menunjuk ke kategori yang sudah dihapus (tampil sebagai "Custom Category").</span>
+            <button onclick="promptCleanOrphanBudgets()" class="px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold transition">Hapus Budget Tanpa Kategori</button>
+          </div>` : '';
+      }
+
       if (activeBudgets.length === 0) {
         list.innerHTML = `
           <div class="p-12 text-center rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-400 text-sm">
@@ -4152,6 +4164,33 @@ ON CONFLICT (username) DO NOTHING;
           } else {
             showToast('Limit budget berhasil dihapus', 'success');
           }
+          renderCurrentView();
+        },
+        'Hapus',
+        'bg-rose-600 hover:bg-rose-700'
+      );
+    }
+
+    // Bersihkan budget yang kategorinya sudah dihapus (data lama).
+    function promptCleanOrphanBudgets() {
+      const orphaned = appState.budgets.filter(b => !appState.categories.some(c => c.id === b.category_id));
+      if (orphaned.length === 0) return;
+      openConfirmModal(
+        'Hapus Budget Tanpa Kategori',
+        `Hapus ${orphaned.length} limit budget yang kategorinya sudah tidak ada? Setelah ini kamu bisa atur ulang limit dengan kategori baru.`,
+        async () => {
+          const ids = orphaned.map(b => b.id);
+          appState.budgets = appState.budgets.filter(b => !ids.includes(b.id));
+          if (appState.supabase) {
+            try { await appState.supabase.from('budgets').delete().in('id', ids); } catch (e) {}
+          }
+          StorageService.saveLocal();
+          showUndoBar(`${orphaned.length} budget lama dihapus`, async () => {
+            appState.budgets = appState.budgets.concat(orphaned);
+            await restoreToCloud('budgets', orphaned);
+            StorageService.saveLocal();
+            renderCurrentView();
+          });
           renderCurrentView();
         },
         'Hapus',
