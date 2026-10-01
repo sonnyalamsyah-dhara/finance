@@ -760,6 +760,30 @@
             </table>
           </div>
         </div>
+
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">Budget vs Actual</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Realisasi pemakaian limit per kategori pada bulan terpilih</p>
+            </div>
+            <input type="month" id="report-budget-month" onchange="renderReportBudgetVsActual()" class="py-1.5 px-3 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs md:text-sm">
+              <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th class="py-3 px-4">Kategori</th>
+                  <th class="py-3 px-4 text-right">Limit</th>
+                  <th class="py-3 px-4 text-right">Terpakai</th>
+                  <th class="py-3 px-4 text-right">Sisa</th>
+                  <th class="py-3 px-4 text-right">Terpakai %</th>
+                </tr>
+              </thead>
+              <tbody id="report-budget-table-body" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <!-- VIEW: RECURRING -->
@@ -821,7 +845,7 @@
               </div>
               <h3 class="font-bold text-base text-slate-900 dark:text-white">Export Financial Data</h3>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Download laporan multi-sheet Excel yang mencakup: Transaksi lengkap (dengan nama penginput), Ringkasan Kategori, Ringkasan Bulanan, dan Saldo Akun.
+                Download laporan multi-sheet Excel yang mencakup: Transaksi lengkap (dengan nama penginput), Ringkasan Kategori, Ringkasan Bulanan, Budget vs Actual, dan Saldo Akun.
               </p>
             </div>
             <div class="mt-6 flex flex-wrap gap-3">
@@ -853,6 +877,24 @@
                 <input id="import-file-input" type="file" accept=".xlsx, .xls, .csv" onchange="handleFileImport(event)" class="hidden">
               </label>
             </div>
+          </div>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-base text-slate-900 dark:text-white">Backup & Restore (JSON)</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Simpan seluruh data (akun, kategori, transaksi, budget, jadwal) ke satu file JSON, atau pulihkan dari file backup.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button onclick="backupDataJSON()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-2 shadow-sm transition">
+              <i data-lucide="hard-drive-download" class="w-4 h-4"></i>
+              <span>Backup ke JSON</span>
+            </button>
+            <label class="cursor-pointer px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-xs md:text-sm flex items-center gap-2 transition">
+              <i data-lucide="hard-drive-upload" class="w-4 h-4"></i>
+              <span>Restore dari JSON</span>
+              <input id="restore-json-input" type="file" accept=".json,application/json" onchange="restoreDataJSON(event)" class="hidden">
+            </label>
           </div>
         </div>
 
@@ -941,7 +983,7 @@
           <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
             <div id="conn-test-status" class="text-xs font-medium text-slate-500">Status: Memeriksa koneksi...</div>
             <div class="flex items-center gap-2">
-              <button onclick="pushSeedToSupabase()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs md:text-sm shadow-sm transition" title="Upload default accounts & categories to Supabase">
+              <button onclick="pushSeedToSupabase()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs md:text-sm shadow-sm transition" title="Upload akun default ke Supabase">
                 Upload Data Akun ke Cloud
               </button>
               <button onclick="saveSupabaseConfig()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm shadow-sm transition">
@@ -1007,7 +1049,7 @@
         <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
           <div>
             <h4 class="font-bold text-sm text-slate-900 dark:text-white">Reset & Demo Data</h4>
-            <p class="text-xs text-slate-500">Muat ulang data simulasi awal atau bersihkan seluruh data transaksi.</p>
+            <p class="text-xs text-slate-500">Muat data contoh atau bersihkan seluruh transaksi, budget & jadwal.</p>
           </div>
           <div class="flex items-center gap-2">
             <button onclick="resetToSampleData()" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-semibold text-slate-700 dark:text-slate-300">Muat Sample Data</button>
@@ -1330,6 +1372,14 @@
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
+  <!-- Undo Bar (Urungkan Hapus) -->
+  <div id="undo-bar" class="hidden fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 items-center gap-3 px-4 py-3 rounded-2xl bg-slate-900 dark:bg-slate-800 text-white shadow-2xl border border-slate-700 text-xs">
+    <i data-lucide="rotate-ccw" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+    <span id="undo-bar-msg" class="font-medium">Data dihapus</span>
+    <button onclick="performUndo()" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 font-semibold transition shrink-0">Urungkan</button>
+    <button onclick="hideUndoBar()" class="p-1 rounded-lg text-slate-400 hover:text-white transition shrink-0"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+  </div>
+
   <script>
     /* STORAGE KEYS */
     const STORAGE_KEY = 'KASTARA_APP_STATE_V2';
@@ -1458,6 +1508,7 @@
     let filterDebounceTimer = null;
     let confirmCallback = null;
     let pendingImportTransactions = [];
+    let pendingRecurringId = null;
     let cashFlowChartInstance = null;
     let categoryPieChartInstance = null;
     let reportMonthlyChartInstance = null;
@@ -1547,12 +1598,42 @@ CREATE TABLE IF NOT EXISTS user_approvals (
   approved_by VARCHAR(100)
 );
 
-ALTER TABLE accounts DISABLE ROW LEVEL SECURITY;
-ALTER TABLE categories DISABLE ROW LEVEL SECURITY;
-ALTER TABLE transactions DISABLE ROW LEVEL SECURITY;
-ALTER TABLE budgets DISABLE ROW LEVEL SECURITY;
-ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;
-ALTER TABLE user_approvals DISABLE ROW LEVEL SECURITY;
+-- ============================================================
+-- KEAMANAN: ROW LEVEL SECURITY (RLS)
+-- Data keuangan hanya bisa diakses pengguna yang sudah login.
+-- Role anon hanya boleh registrasi & cek status approval.
+-- ============================================================
+ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recurring_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_approvals ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS auth_full_accounts ON accounts;
+CREATE POLICY auth_full_accounts ON accounts FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS auth_full_categories ON categories;
+CREATE POLICY auth_full_categories ON categories FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS auth_full_transactions ON transactions;
+CREATE POLICY auth_full_transactions ON transactions FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS auth_full_budgets ON budgets;
+CREATE POLICY auth_full_budgets ON budgets FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS auth_full_recurring ON recurring_transactions;
+CREATE POLICY auth_full_recurring ON recurring_transactions FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- user_approvals: anon boleh daftar (INSERT) & cek status (SELECT) sebelum login
+DROP POLICY IF EXISTS anon_select_approvals ON user_approvals;
+CREATE POLICY anon_select_approvals ON user_approvals FOR SELECT TO anon USING (true);
+
+DROP POLICY IF EXISTS anon_insert_approvals ON user_approvals;
+CREATE POLICY anon_insert_approvals ON user_approvals FOR INSERT TO anon WITH CHECK (true);
+
+DROP POLICY IF EXISTS auth_full_approvals ON user_approvals;
+CREATE POLICY auth_full_approvals ON user_approvals FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 GRANT ALL ON TABLE accounts TO anon, authenticated, service_role;
 GRANT ALL ON TABLE categories TO anon, authenticated, service_role;
@@ -1574,18 +1655,15 @@ ON CONFLICT (username) DO NOTHING;
         { id: 'acc-3', name: 'GoPay / E-Wallet', type: 'E-Wallet', initial_balance: 350000, current_balance: 350000, icon: 'smartphone', input_by: 'sonny' }
       ],
       categories: [
-        { id: 'grp-inc-rutin', name: 'Pemasukan Rutin', type: 'INCOME', color: '#10b981', icon: 'banknote', parent_id: null },
-        { id: 'cat-1', name: 'Salary & Wages', type: 'INCOME', color: '#10b981', icon: 'banknote', parent_id: 'grp-inc-rutin' },
-        { id: 'grp-inc-usaha', name: 'Usaha & Freelance', type: 'INCOME', color: '#059669', icon: 'briefcase', parent_id: null },
-        { id: 'cat-2', name: 'Freelance & Bisnis', type: 'INCOME', color: '#059669', icon: 'briefcase', parent_id: 'grp-inc-usaha' },
-        { id: 'grp-exp-belanja', name: 'Belanja Bulanan', type: 'EXPENSE', color: '#f59e0b', icon: 'shopping-cart', parent_id: null },
-        { id: 'cat-3', name: 'Food & Groceries', type: 'EXPENSE', color: '#f59e0b', icon: 'utensils', parent_id: 'grp-exp-belanja' },
-        { id: 'grp-exp-transport', name: 'Transport & Kendaraan', type: 'EXPENSE', color: '#3b82f6', icon: 'car', parent_id: null },
-        { id: 'cat-4', name: 'Transport & Fuel', type: 'EXPENSE', color: '#3b82f6', icon: 'car', parent_id: 'grp-exp-transport' },
-        { id: 'grp-exp-tagihan', name: 'Tagihan & Langganan', type: 'EXPENSE', color: '#ef4444', icon: 'zap', parent_id: null },
-        { id: 'cat-5', name: 'Bills & Utilities', type: 'EXPENSE', color: '#ef4444', icon: 'zap', parent_id: 'grp-exp-tagihan' },
-        { id: 'grp-exp-gaya', name: 'Gaya Hidup & Hobi', type: 'EXPENSE', color: '#ec4899', icon: 'sparkles', parent_id: null },
-        { id: 'cat-6', name: 'Entertainment & Leisure', type: 'EXPENSE', color: '#ec4899', icon: 'film', parent_id: 'grp-exp-gaya' }
+        { id: 'grp-exp2-kebutuhan-utama', name: 'Kebutuhan Utama', type: 'EXPENSE', color: '#f59e0b', icon: 'home', parent_id: null },
+        { id: 'cat-exp2-rumah-tangga', name: 'Rumah Tangga', type: 'EXPENSE', color: '#f59e0b', icon: 'home', parent_id: 'grp-exp2-kebutuhan-utama' },
+        { id: 'cat-exp2-makanan', name: 'Makanan', type: 'EXPENSE', color: '#f59e0b', icon: 'utensils', parent_id: 'grp-exp2-kebutuhan-utama' },
+        { id: 'cat-exp2-transportasi', name: 'Transportasi', type: 'EXPENSE', color: '#f59e0b', icon: 'car', parent_id: 'grp-exp2-kebutuhan-utama' },
+        { id: 'grp-exp2-personal', name: 'Personal', type: 'EXPENSE', color: '#ec4899', icon: 'user', parent_id: null },
+        { id: 'cat-exp2-hiburan', name: 'Hiburan', type: 'EXPENSE', color: '#ec4899', icon: 'film', parent_id: 'grp-exp2-personal' },
+        { id: 'grp-inc2-pekerjaan', name: 'Pekerjaan', type: 'INCOME', color: '#10b981', icon: 'briefcase', parent_id: null },
+        { id: 'cat-inc2-gaji', name: 'Gaji', type: 'INCOME', color: '#10b981', icon: 'banknote', parent_id: 'grp-inc2-pekerjaan' },
+        { id: 'cat-inc2-bonus', name: 'Bonus', type: 'INCOME', color: '#10b981', icon: 'gift', parent_id: 'grp-inc2-pekerjaan' }
       ],
       budgets: [],
       transactions: [],
@@ -1665,6 +1743,7 @@ ON CONFLICT (username) DO NOTHING;
             localStorage.setItem(LAST_ACTIVE_KEY, Date.now().toString());
             hideAuthScreen();
             updateHeaderUserUI();
+            StorageService.syncWithSupabase();
             return true;
           }
         } catch (e) {
@@ -1684,6 +1763,7 @@ ON CONFLICT (username) DO NOTHING;
             localStorage.setItem(LAST_ACTIVE_KEY, Date.now().toString());
             hideAuthScreen();
             updateHeaderUserUI();
+            showToast('Sesi cloud berakhir — data dari cache lokal. Login ulang untuk sinkronisasi.', 'info');
             return true;
           }
         } catch (e) {
@@ -1794,7 +1874,7 @@ ON CONFLICT (username) DO NOTHING;
           };
 
           try {
-            await appState.supabase.from('user_approvals').upsert(approvalRecord);
+            await appState.supabase.from('user_approvals').insert(approvalRecord);
           } catch (e) {
             console.warn('Record approval error:', e);
           }
@@ -1899,6 +1979,8 @@ ON CONFLICT (username) DO NOTHING;
       resetIdleTimer();
       showToast(`Selamat datang, ${cleanUser}!`, 'success');
       renderCurrentView();
+      // Sinkronisasi cloud setelah login (role authenticated)
+      StorageService.syncWithSupabase();
     }
 
     function handleLogout() {
@@ -2013,18 +2095,25 @@ ON CONFLICT (username) DO NOTHING;
 
     async function performBulkDelete(viewKey, ids) {
       const idSet = new Set(ids);
+      let removedItems = [];
+      let orphanedRestore = [];
+
       if (viewKey === 'transactions') {
+        removedItems = appState.transactions.filter(t => idSet.has(t.id));
         appState.transactions = appState.transactions.filter(t => !idSet.has(t.id));
         if (appState.supabase) { try { await appState.supabase.from('transactions').delete().in('id', ids); } catch (e) {} }
         StorageService.saveLocal();
         StorageService.recalculateAllAccountBalances();
       } else if (viewKey === 'budgets') {
+        removedItems = appState.budgets.filter(b => idSet.has(b.id));
         appState.budgets = appState.budgets.filter(b => !idSet.has(b.id));
         if (appState.supabase) { try { await appState.supabase.from('budgets').delete().in('id', ids); } catch (e) {} }
         StorageService.saveLocal();
       } else if (viewKey === 'categories') {
         // Sub-kategori dari grup yang dihapus otomatis jadi kategori mandiri.
         const orphaned = appState.categories.filter(c => c.parent_id && idSet.has(c.parent_id) && !idSet.has(c.id));
+        orphanedRestore = orphaned.map(c => ({ id: c.id, parent_id: c.parent_id }));
+        removedItems = appState.categories.filter(c => idSet.has(c.id));
         orphaned.forEach(c => c.parent_id = null);
         appState.categories = appState.categories.filter(c => !idSet.has(c.id));
         if (appState.supabase) {
@@ -2035,16 +2124,49 @@ ON CONFLICT (username) DO NOTHING;
         }
         StorageService.saveLocal();
       } else if (viewKey === 'accounts') {
+        removedItems = appState.accounts.filter(a => idSet.has(a.id));
         appState.accounts = appState.accounts.filter(a => !idSet.has(a.id));
         if (appState.supabase) { try { await appState.supabase.from('accounts').delete().in('id', ids); } catch (e) {} }
         StorageService.saveLocal();
         StorageService.recalculateAllAccountBalances();
       } else if (viewKey === 'recurring') {
+        removedItems = appState.recurring.filter(r => idSet.has(r.id));
         appState.recurring = appState.recurring.filter(r => !idSet.has(r.id));
         if (appState.supabase) { try { await appState.supabase.from('recurring_transactions').delete().in('id', ids); } catch (e) {} }
         StorageService.saveLocal();
       }
-      showToast(`${ids.length} data berhasil dihapus`, 'success');
+
+      // Simpan snapshot untuk fitur "Urungkan"
+      if (removedItems.length > 0) {
+        showUndoBar(`${removedItems.length} data dihapus`, async () => {
+          if (viewKey === 'transactions') {
+            appState.transactions = appState.transactions.concat(removedItems);
+            await restoreToCloud('transactions', removedItems);
+            StorageService.recalculateAllAccountBalances();
+          } else if (viewKey === 'budgets') {
+            appState.budgets = appState.budgets.concat(removedItems);
+            await restoreToCloud('budgets', removedItems);
+          } else if (viewKey === 'categories') {
+            appState.categories = appState.categories.concat(removedItems);
+            orphanedRestore.forEach(o => {
+              const c = appState.categories.find(x => x.id === o.id);
+              if (c) c.parent_id = o.parent_id;
+            });
+            await restoreToCloud('categories', appState.categories.filter(c => removedItems.some(r => r.id === c.id) || orphanedRestore.some(o => o.id === c.id)));
+          } else if (viewKey === 'accounts') {
+            appState.accounts = appState.accounts.concat(removedItems);
+            await restoreToCloud('accounts', removedItems);
+            StorageService.recalculateAllAccountBalances();
+          } else if (viewKey === 'recurring') {
+            appState.recurring = appState.recurring.concat(removedItems);
+            await restoreToCloud('recurring_transactions', removedItems);
+          }
+          StorageService.saveLocal();
+          renderCurrentView();
+        });
+      } else {
+        showToast(`${ids.length} data berhasil dihapus`, 'success');
+      }
     }
 
     /* CATEGORY TREE (2 LEVEL: GRUP -> SUB-KATEGORI) */
@@ -2369,7 +2491,8 @@ ON CONFLICT (username) DO NOTHING;
           try {
             appState.supabase = window.supabase.createClient(url, key);
             appState.isSupabaseActive = true;
-            this.syncWithSupabase();
+            // Sinkronisasi cloud dilakukan setelah login berhasil (lihat loginSuccess / checkAuthSession)
+            // agar data hanya bisa diakses oleh pengguna yang terautentikasi (RLS).
           } catch (err) {
             console.error('Supabase init error:', err);
           }
@@ -2438,6 +2561,9 @@ ON CONFLICT (username) DO NOTHING;
       async syncWithSupabase() {
         if (!appState.supabase) return;
         try {
+          // Hanya sinkronisasi saat sudah login (RLS di cloud hanya mengizinkan role authenticated).
+          const { data: sessionData } = await appState.supabase.auth.getSession();
+          if (!sessionData || !sessionData.session) return;
           const { data: accounts, error: errAcc } = await appState.supabase.from('accounts').select('*');
           if (!errAcc && accounts && accounts.length > 0) {
             appState.accounts = accounts;
@@ -2905,22 +3031,26 @@ ON CONFLICT (username) DO NOTHING;
         return;
       }
 
-      container.innerHTML = activeRec.map(r => `
-        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/40 flex items-center justify-between text-xs">
+      const todayStr = new Date().toISOString().split('T')[0];
+      const sortedRec = [...activeRec].sort((a, b) => (a.next_run_date || '').localeCompare(b.next_run_date || ''));
+      container.innerHTML = sortedRec.map(r => {
+        const isDue = r.next_run_date && r.next_run_date <= todayStr;
+        return `
+        <div class="p-3 rounded-xl ${isDue ? 'bg-rose-50/60 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/60' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/40'} border flex items-center justify-between text-xs">
           <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-mono font-bold text-[11px]">
+            <div class="w-8 h-8 rounded-lg ${isDue ? 'bg-rose-500 text-white' : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'} flex items-center justify-center font-mono font-bold text-[11px]">
               ${r.next_run_date ? r.next_run_date.split('-')[2] : '01'}
             </div>
             <div>
               <div class="font-semibold text-slate-800 dark:text-slate-200">${r.name}</div>
-              <div class="text-[11px] text-slate-400">${r.frequency} • ${r.next_run_date}</div>
+              <div class="text-[11px] ${isDue ? 'text-rose-500 font-semibold' : 'text-slate-400'}">${isDue ? 'Jatuh tempo • ' : ''}${r.frequency} • ${r.next_run_date}</div>
             </div>
           </div>
           <div class="font-bold ${r.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900 dark:text-slate-100'}">
             ${formatIDR(r.amount)}
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
 
     function renderDashboardRecentTransactions() {
@@ -3272,6 +3402,7 @@ ON CONFLICT (username) DO NOTHING;
       const modal = document.getElementById('modal-transaction');
       const form = document.getElementById('tx-form');
       form.reset();
+      pendingRecurringId = null;
 
       populateTransactionFormSelects();
 
@@ -3312,6 +3443,7 @@ ON CONFLICT (username) DO NOTHING;
 
     function closeTransactionModal() {
       document.getElementById('modal-transaction').classList.add('hidden');
+      pendingRecurringId = null;
     }
 
     function populateTransactionFormSelects() {
@@ -3436,6 +3568,21 @@ ON CONFLICT (username) DO NOTHING;
         }
       }
 
+      // Jika transaksi ini dibuat dari jadwal berulang, majukan next_run_date
+      if (pendingRecurringId) {
+        const rec = appState.recurring.find(r => r.id === pendingRecurringId);
+        pendingRecurringId = null;
+        if (rec) {
+          const today = new Date().toISOString().split('T')[0];
+          let next = advanceRecurringDate(rec.next_run_date || date, rec.frequency);
+          let guard = 0;
+          while (next <= today && guard < 60) { next = advanceRecurringDate(next, rec.frequency); guard++; }
+          rec.next_run_date = next;
+          if (appState.supabase) { try { await appState.supabase.from('recurring_transactions').upsert(rec); } catch (e) {} }
+          showToast(`Jadwal "${rec.name}" dimajukan ke ${next}`, 'info');
+        }
+      }
+
       StorageService.saveLocal();
       StorageService.recalculateAllAccountBalances();
       closeTransactionModal();
@@ -3469,6 +3616,7 @@ ON CONFLICT (username) DO NOTHING;
         'Hapus Transaksi',
         'Apakah Anda yakin ingin menghapus catatan transaksi ini? Tindakan ini tidak dapat dibatalkan.',
         async () => {
+          const removed = appState.transactions.find(t => t.id === id);
           appState.transactions = appState.transactions.filter(t => t.id !== id);
           if (appState.supabase) {
             try {
@@ -3477,7 +3625,17 @@ ON CONFLICT (username) DO NOTHING;
           }
           StorageService.saveLocal();
           StorageService.recalculateAllAccountBalances();
-          showToast('Transaksi berhasil dihapus', 'success');
+          if (removed) {
+            showUndoBar('Transaksi dihapus', async () => {
+              appState.transactions.push(removed);
+              await restoreToCloud('transactions', [removed]);
+              StorageService.saveLocal();
+              StorageService.recalculateAllAccountBalances();
+              renderCurrentView();
+            });
+          } else {
+            showToast('Transaksi berhasil dihapus', 'success');
+          }
           renderCurrentView();
         },
         'Hapus',
@@ -3611,13 +3769,24 @@ ON CONFLICT (username) DO NOTHING;
         'Hapus Akun',
         'Apakah Anda yakin ingin menghapus akun ini? Transaksi terkait akun ini mungkin terpengaruh.',
         async () => {
+          const removed = appState.accounts.find(a => a.id === id);
           appState.accounts = appState.accounts.filter(a => a.id !== id);
           if (appState.supabase) {
             try { await appState.supabase.from('accounts').delete().eq('id', id); } catch (e) {}
           }
           StorageService.saveLocal();
           StorageService.recalculateAllAccountBalances();
-          showToast('Akun berhasil dihapus', 'success');
+          if (removed) {
+            showUndoBar('Akun dihapus', async () => {
+              appState.accounts.push(removed);
+              await restoreToCloud('accounts', [removed]);
+              StorageService.saveLocal();
+              StorageService.recalculateAllAccountBalances();
+              renderCurrentView();
+            });
+          } else {
+            showToast('Akun berhasil dihapus', 'success');
+          }
           renderCurrentView();
         },
         'Hapus',
@@ -3967,12 +4136,22 @@ ON CONFLICT (username) DO NOTHING;
         'Hapus Budget',
         'Hapus limit budget kategori ini? Limit akan dihapus untuk semua bulan.',
         async () => {
+          const removed = appState.budgets.find(b => b.id === id);
           appState.budgets = appState.budgets.filter(b => b.id !== id);
           if (appState.supabase) {
             try { await appState.supabase.from('budgets').delete().eq('id', id); } catch (e) {}
           }
           StorageService.saveLocal();
-          showToast('Limit budget berhasil dihapus', 'success');
+          if (removed) {
+            showUndoBar('Limit budget dihapus', async () => {
+              appState.budgets.push(removed);
+              await restoreToCloud('budgets', [removed]);
+              StorageService.saveLocal();
+              renderCurrentView();
+            });
+          } else {
+            showToast('Limit budget berhasil dihapus', 'success');
+          }
           renderCurrentView();
         },
         'Hapus',
@@ -4164,6 +4343,7 @@ ON CONFLICT (username) DO NOTHING;
         'Hapus Kategori',
         message,
         async () => {
+          const removed = appState.categories.find(c => c.id === id);
           const childIds = children.map(c => c.id);
           appState.categories.forEach(c => { if (c.parent_id === id) c.parent_id = null; });
           appState.categories = appState.categories.filter(c => c.id !== id);
@@ -4179,7 +4359,17 @@ ON CONFLICT (username) DO NOTHING;
           }
 
           StorageService.saveLocal();
-          showToast('Kategori berhasil dihapus', 'success');
+          if (removed) {
+            showUndoBar('Kategori dihapus', async () => {
+              appState.categories.push(removed);
+              appState.categories.forEach(c => { if (childIds.includes(c.id)) c.parent_id = removed.id; });
+              await restoreToCloud('categories', appState.categories.filter(c => c.id === removed.id || childIds.includes(c.id)));
+              StorageService.saveLocal();
+              renderCurrentView();
+            });
+          } else {
+            showToast('Kategori berhasil dihapus', 'success');
+          }
           renderCurrentView();
         },
         'Hapus',
@@ -4291,6 +4481,63 @@ ON CONFLICT (username) DO NOTHING;
           }
         });
       }
+
+      renderReportBudgetVsActual();
+    }
+
+    // Laporan Budget vs Actual per bulan (grup rollup ke sub-kategorinya).
+    function renderReportBudgetVsActual() {
+      const tbody = document.getElementById('report-budget-table-body');
+      if (!tbody) return;
+
+      const monthInput = document.getElementById('report-budget-month');
+      const now = new Date();
+      const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      if (monthInput && !monthInput.value) monthInput.value = currentMonthStr;
+      const monthStr = (monthInput && monthInput.value) || currentMonthStr;
+      const monthTxns = appState.transactions.filter(t => (t.transaction_date || '').startsWith(monthStr));
+
+      const rows = appState.budgets.map(b => {
+        const cat = appState.categories.find(c => c.id === b.category_id) || { name: 'Custom Category', color: '#6366f1' };
+        const ids = getCategoryTreeIds(b.category_id);
+        const used = monthTxns
+          .filter(t => t.type === 'EXPENSE' && ids.includes(t.category_id))
+          .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        const limit = Number(b.amount) || 0;
+        const pct = limit > 0 ? Math.round((used / limit) * 100) : 0;
+        return { cat, limit, used, pct };
+      }).sort((a, b) => b.pct - a.pct);
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-400 text-xs">Belum ada limit budget. Atur di menu Monthly Budgets.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => {
+        const remaining = r.limit - r.used;
+        const over = r.used > r.limit;
+        return `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${r.cat.color}"></span>
+                <span class="font-medium text-slate-800 dark:text-slate-200">${r.cat.name}</span>
+                ${isGroupCategory(r.cat.id) ? '<span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">GRUP</span>' : ''}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-right font-medium">${formatIDR(r.limit)}</td>
+            <td class="py-3 px-4 text-right font-semibold ${over ? 'text-rose-600' : 'text-slate-800 dark:text-slate-200'}">${formatIDR(r.used)}</td>
+            <td class="py-3 px-4 text-right font-medium ${remaining < 0 ? 'text-rose-600' : 'text-emerald-600'}">${formatIDR(remaining)}</td>
+            <td class="py-3 px-4 text-right">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="w-16 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden inline-block align-middle">
+                  <span class="block h-full rounded-full ${over ? 'bg-rose-500' : (r.pct > 80 ? 'bg-amber-500' : 'bg-indigo-600')}" style="width: ${Math.min(100, r.pct)}%"></span>
+                </span>
+                <span class="font-semibold ${over ? 'text-rose-600' : 'text-slate-600 dark:text-slate-300'}">${r.pct}%</span>
+              </span>
+            </td>
+          </tr>`;
+      }).join('');
     }
 
     /* RECURRING VIEW LOGIC */
@@ -4310,10 +4557,12 @@ ON CONFLICT (username) DO NOTHING;
         return;
       }
 
+      const todayStr = new Date().toISOString().split('T')[0];
       tbody.innerHTML = appState.recurring.map(r => {
         const cat = appState.categories.find(c => c.id === r.category_id);
         const acc = appState.accounts.find(a => a.id === r.account_id);
         const inputBadge = getInputterBadge(r.input_by || getActiveUser());
+        const isDue = r.next_run_date && r.next_run_date <= todayStr;
 
         return `
           <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
@@ -4324,7 +4573,10 @@ ON CONFLICT (username) DO NOTHING;
             <td class="py-3 px-4 font-bold ${r.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900 dark:text-slate-100'}">${formatIDR(r.amount)}</td>
             <td class="py-3 px-4 text-slate-500">${r.frequency}</td>
             <td class="py-3 px-4 text-slate-600 dark:text-slate-300">${acc ? acc.name : '-'} / ${cat ? cat.name : '-'}</td>
-            <td class="py-3 px-4 font-mono">${r.next_run_date}</td>
+            <td class="py-3 px-4 font-mono">
+              ${r.next_run_date}
+              ${isDue ? '<span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white align-middle">JATUH TEMPO</span>' : ''}
+            </td>
             <td class="py-3 px-4">
               <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${r.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}">
                 <span class="w-1.5 h-1.5 rounded-full ${r.is_active ? 'bg-emerald-500' : 'bg-slate-400'}"></span>
@@ -4332,7 +4584,8 @@ ON CONFLICT (username) DO NOTHING;
               </span>
             </td>
             <td class="py-3 px-4 text-right">
-              <button onclick="executeRecurringPlan('${r.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 font-semibold text-[11px] mr-1">Catat Sekarang</button>
+              <button onclick="executeRecurringPlan('${r.id}')" class="px-2.5 py-1 rounded-lg ${isDue ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100'} font-semibold text-[11px] mr-1">Catat Sekarang</button>
+              <button onclick="editRecurring('${r.id}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white" title="Edit"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
               <button onclick="promptDeleteRecurring('${r.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
             </td>
           </tr>
@@ -4341,7 +4594,7 @@ ON CONFLICT (username) DO NOTHING;
       lucide.createIcons();
     }
 
-    function openRecurringModal() {
+    function openRecurringModal(editId = null) {
       const modal = document.getElementById('modal-recurring');
       const form = document.getElementById('recurring-form');
       form.reset();
@@ -4355,8 +4608,27 @@ ON CONFLICT (username) DO NOTHING;
       document.getElementById('rec-inputted-by').value = currentUser;
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('rec-next-date').value = today;
+      document.getElementById('recurring-edit-id').value = '';
+      document.getElementById('modal-recurring-title').textContent = 'Add Recurring Plan';
+
+      if (editId) {
+        const r = appState.recurring.find(item => item.id === editId);
+        if (r) {
+          document.getElementById('recurring-edit-id').value = r.id;
+          document.getElementById('modal-recurring-title').textContent = 'Edit Recurring Plan';
+          document.getElementById('rec-name').value = r.name;
+          document.getElementById('rec-type').value = r.type;
+          document.getElementById('rec-amount').value = r.amount;
+          document.getElementById('rec-category').value = r.category_id || '';
+          document.getElementById('rec-account').value = r.account_id || '';
+          document.getElementById('rec-frequency').value = r.frequency || 'MONTHLY';
+          document.getElementById('rec-next-date').value = r.next_run_date || today;
+        }
+      }
       modal.classList.remove('hidden');
     }
+
+    function editRecurring(id) { openRecurringModal(id); }
 
     function closeRecurringModal() {
       document.getElementById('modal-recurring').classList.add('hidden');
@@ -4364,8 +4636,9 @@ ON CONFLICT (username) DO NOTHING;
 
     async function handleSaveRecurring(e) {
       e.preventDefault();
+      const editId = document.getElementById('recurring-edit-id').value;
       const recObj = {
-        id: 'rec-' + Date.now(),
+        id: editId || 'rec-' + Date.now(),
         name: document.getElementById('rec-name').value.trim(),
         type: document.getElementById('rec-type').value,
         amount: Number(document.getElementById('rec-amount').value),
@@ -4377,27 +4650,62 @@ ON CONFLICT (username) DO NOTHING;
         is_active: true
       };
 
-      appState.recurring.push(recObj);
+      if (editId) {
+        const idx = appState.recurring.findIndex(r => r.id === editId);
+        if (idx !== -1) {
+          recObj.is_active = appState.recurring[idx].is_active !== false;
+          appState.recurring[idx] = recObj;
+        }
+      } else {
+        appState.recurring.push(recObj);
+      }
+
       if (appState.supabase) {
         try { await appState.supabase.from('recurring_transactions').upsert(recObj); } catch (err) {}
       }
       StorageService.saveLocal();
       closeRecurringModal();
-      showToast('Jadwal tagihan berhasil ditambahkan', 'success');
+      showToast(editId ? 'Jadwal berhasil diperbarui' : 'Jadwal tagihan berhasil ditambahkan', 'success');
       renderCurrentView();
+    }
+
+    // Majukan tanggal jatuh tempo sesuai frekuensi (dengan clamp akhir bulan, mis. 31 Jan -> 28/29 Feb).
+    function advanceRecurringDate(dateStr, frequency) {
+      const base = dateStr || new Date().toISOString().split('T')[0];
+      const d = new Date(base + 'T00:00:00');
+      if (isNaN(d.getTime())) return base;
+      const day = d.getDate();
+      if (frequency === 'WEEKLY') {
+        d.setDate(d.getDate() + 7);
+      } else if (frequency === 'YEARLY') {
+        const month = d.getMonth();
+        d.setDate(1);
+        d.setFullYear(d.getFullYear() + 1);
+        d.setMonth(month);
+        const lastDay = new Date(d.getFullYear(), month + 1, 0).getDate();
+        d.setDate(Math.min(day, lastDay));
+      } else {
+        d.setDate(1);
+        d.setMonth(d.getMonth() + 1);
+        const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+        d.setDate(Math.min(day, lastDay));
+      }
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
     function executeRecurringPlan(id) {
       const r = appState.recurring.find(item => item.id === id);
       if (!r) return;
       openTransactionModal();
+      pendingRecurringId = r.id;
       document.getElementById('tx-amount').value = r.amount;
       document.getElementById('tx-description').value = r.name;
       setTxModalType(r.type);
       document.getElementById('tx-account').value = r.account_id;
       document.getElementById('tx-category').value = r.category_id;
       document.getElementById('tx-inputted-by').value = getActiveUser();
-      showToast(`Mencatat transaksi untuk ${r.name}`, 'info');
+      document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+      showToast(`Simpan transaksi "${r.name}" — jadwal otomatis dimajukan`, 'info');
     }
 
     function promptDeleteRecurring(id) {
@@ -4405,15 +4713,211 @@ ON CONFLICT (username) DO NOTHING;
         'Hapus Jadwal',
         'Apakah Anda yakin ingin menghapus jadwal pembayaran ini?',
         async () => {
+          const removed = appState.recurring.find(r => r.id === id);
           appState.recurring = appState.recurring.filter(r => r.id !== id);
           if (appState.supabase) {
             try { await appState.supabase.from('recurring_transactions').delete().eq('id', id); } catch (e) {}
           }
           StorageService.saveLocal();
-          showToast('Jadwal berhasil dihapus', 'success');
+          if (removed) {
+            showUndoBar('Jadwal dihapus', async () => {
+              appState.recurring.push(removed);
+              await restoreToCloud('recurring_transactions', [removed]);
+              StorageService.saveLocal();
+              renderCurrentView();
+            });
+          } else {
+            showToast('Jadwal berhasil dihapus', 'success');
+          }
           renderCurrentView();
         },
         'Hapus',
+        'bg-rose-600 hover:bg-rose-700'
+      );
+    }
+
+    /* UNDO (URUNGKAN HAPUS) */
+    let pendingUndo = null;
+    let undoTimer = null;
+
+    function showUndoBar(message, undoFn) {
+      pendingUndo = undoFn;
+      const bar = document.getElementById('undo-bar');
+      const msg = document.getElementById('undo-bar-msg');
+      if (!bar || !msg) return;
+      msg.textContent = message;
+      bar.classList.remove('hidden');
+      bar.classList.add('flex');
+      lucide.createIcons();
+      if (undoTimer) clearTimeout(undoTimer);
+      undoTimer = setTimeout(() => { hideUndoBar(); }, 15000);
+    }
+
+    function hideUndoBar() {
+      pendingUndo = null;
+      if (undoTimer) { clearTimeout(undoTimer); undoTimer = null; }
+      const bar = document.getElementById('undo-bar');
+      if (bar) {
+        bar.classList.add('hidden');
+        bar.classList.remove('flex');
+      }
+    }
+
+    async function performUndo() {
+      const fn = pendingUndo;
+      hideUndoBar();
+      if (typeof fn === 'function') {
+        await fn();
+        showToast('Penghapusan dibatalkan — data dikembalikan', 'success');
+      }
+    }
+
+    // Upsert ulang item yang dikembalikan ke cloud (menyesuaikan payload per tabel).
+    async function restoreToCloud(table, items) {
+      if (!appState.supabase || !items || items.length === 0) return;
+      try {
+        const payload = table === 'budgets'
+          ? items.map(b => Object.assign({}, b, { month: b.month || 'ALL' }))
+          : table === 'categories'
+            ? items.map(categoryCloudPayload)
+            : items;
+        await appState.supabase.from(table).upsert(payload);
+      } catch (e) { console.warn('restoreToCloud error:', e); }
+    }
+
+    /* MAINTENANCE / DATA TOOLS */
+    function backupDataJSON() {
+      const payload = {
+        app: 'Dhara Finance',
+        version: 2,
+        exported_at: new Date().toISOString(),
+        accounts: appState.accounts,
+        categories: appState.categories,
+        transactions: appState.transactions,
+        budgets: appState.budgets,
+        recurring: appState.recurring
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Dhara_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Backup JSON berhasil di-download', 'success');
+    }
+
+    function restoreDataJSON(event) {
+      const file = event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data || !Array.isArray(data.accounts) || !Array.isArray(data.categories) || !Array.isArray(data.transactions)) {
+            showToast('File backup tidak valid (format tidak dikenali)', 'error');
+            return;
+          }
+          openConfirmModal(
+            'Restore dari Backup',
+            `Ganti seluruh data saat ini dengan isi backup (${data.transactions.length} transaksi, ${data.accounts.length} akun, ${data.categories.length} kategori)? Tindakan ini tidak dapat dibatalkan.`,
+            async () => {
+              appState.accounts = data.accounts;
+              appState.categories = data.categories;
+              appState.transactions = data.transactions;
+              appState.budgets = Array.isArray(data.budgets) ? data.budgets : [];
+              appState.recurring = Array.isArray(data.recurring) ? data.recurring : [];
+              StorageService.saveLocal();
+              StorageService.recalculateAllAccountBalances();
+              if (appState.supabase) {
+                try {
+                  await appState.supabase.from('accounts').upsert(appState.accounts);
+                  await appState.supabase.from('categories').upsert(appState.categories.map(categoryCloudPayload));
+                  await appState.supabase.from('transactions').upsert(appState.transactions);
+                  if (appState.budgets.length > 0) await appState.supabase.from('budgets').upsert(budgetCloudPayload());
+                  if (appState.recurring.length > 0) await appState.supabase.from('recurring_transactions').upsert(appState.recurring);
+                } catch (err) {}
+              }
+              showToast('Data berhasil direstore dari backup', 'success');
+              renderCurrentView();
+            },
+            'Restore',
+            'bg-rose-600 hover:bg-rose-700'
+          );
+        } catch (err) {
+          showToast('Gagal membaca file backup: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function pushSeedToSupabase() {
+      if (!appState.supabase) { showToast('Supabase belum terhubung — cek koneksi di Settings', 'error'); return; }
+      openConfirmModal(
+        'Upload Akun ke Cloud',
+        'Upload akun default (Dompet Tunai, Bank BCA, GoPay) ke Supabase? Akun dengan ID yang sama akan ditimpa.',
+        async () => {
+          try {
+            await appState.supabase.from('accounts').upsert(DEFAULT_SEED_DATA.accounts);
+            showToast('Akun default berhasil di-upload ke cloud', 'success');
+          } catch (e) {
+            showToast('Gagal upload: ' + (e && e.message ? e.message : e), 'error');
+          }
+        },
+        'Upload',
+        'bg-emerald-600 hover:bg-emerald-700'
+      );
+    }
+
+    function resetToSampleData() {
+      openConfirmModal(
+        'Muat Sample Data',
+        'Ganti data akun, kategori, dan transaksi dengan data contoh? Data saat ini akan diganti dan tidak bisa dibatalkan.',
+        async () => {
+          appState.accounts = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA.accounts));
+          appState.categories = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA.categories));
+          appState.transactions = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA.transactions));
+          appState.budgets = [];
+          appState.recurring = [];
+          StorageService.saveLocal();
+          StorageService.recalculateAllAccountBalances();
+          if (appState.supabase) {
+            try {
+              await appState.supabase.from('accounts').upsert(appState.accounts);
+              await appState.supabase.from('categories').upsert(appState.categories.map(categoryCloudPayload));
+              await appState.supabase.from('transactions').upsert(appState.transactions);
+            } catch (e) {}
+          }
+          showToast('Sample data berhasil dimuat', 'success');
+          renderCurrentView();
+        },
+        'Muat Sample',
+        'bg-indigo-600 hover:bg-indigo-700'
+      );
+    }
+
+    function promptClearAllData() {
+      openConfirmModal(
+        'Hapus Semua Data',
+        'Hapus SEMUA transaksi, budget, dan jadwal berulang dari perangkat ini dan cloud? Akun & kategori tetap dipertahankan. Tindakan ini tidak dapat dibatalkan.',
+        async () => {
+          appState.transactions = [];
+          appState.budgets = [];
+          appState.recurring = [];
+          StorageService.saveLocal();
+          StorageService.recalculateAllAccountBalances();
+          if (appState.supabase) {
+            try {
+              await appState.supabase.from('transactions').delete().neq('id', '');
+              await appState.supabase.from('budgets').delete().neq('id', '');
+              await appState.supabase.from('recurring_transactions').delete().neq('id', '');
+            } catch (e) {}
+          }
+          showToast('Semua transaksi, budget & jadwal berhasil dihapus', 'success');
+          renderCurrentView();
+        },
+        'Hapus Semua',
         'bg-rose-600 hover:bg-rose-700'
       );
     }
@@ -4456,6 +4960,53 @@ ON CONFLICT (username) DO NOTHING;
       const catRows = Object.keys(catSummary).map(k => ({ 'Category': k, 'Total Expense': catSummary[k] }));
       const ws2 = XLSX.utils.json_to_sheet(catRows);
       XLSX.utils.book_append_sheet(wb, ws2, 'Category Summary');
+
+      // Ringkasan Bulanan: income, expense, net, savings rate per bulan
+      const monthlyMap = {};
+      appState.transactions.forEach(t => {
+        const m = (t.transaction_date || '').substring(0, 7);
+        if (!m) return;
+        if (!monthlyMap[m]) monthlyMap[m] = { income: 0, expense: 0 };
+        if (t.type === 'INCOME') monthlyMap[m].income += Number(t.amount);
+        if (t.type === 'EXPENSE') monthlyMap[m].expense += Number(t.amount);
+      });
+      const monthlyRows = Object.keys(monthlyMap).sort().map(m => {
+        const inc = monthlyMap[m].income;
+        const exp = monthlyMap[m].expense;
+        const net = inc - exp;
+        return {
+          'Month': m,
+          'Income': inc,
+          'Expense': exp,
+          'Net': net,
+          'Savings Rate (%)': inc > 0 ? Math.round((net / inc) * 100) : 0
+        };
+      });
+      const ws4 = XLSX.utils.json_to_sheet(monthlyRows);
+      XLSX.utils.book_append_sheet(wb, ws4, 'Monthly Summary');
+
+      // Budget vs Actual (bulan berjalan)
+      const nowD = new Date();
+      const curMonth = `${nowD.getFullYear()}-${String(nowD.getMonth() + 1).padStart(2, '0')}`;
+      const curMonthTxns = appState.transactions.filter(t => (t.transaction_date || '').startsWith(curMonth));
+      const budgetRows = appState.budgets.map(b => {
+        const bCat = appState.categories.find(c => c.id === b.category_id) || { name: 'Custom Category' };
+        const bIds = getCategoryTreeIds(b.category_id);
+        const used = curMonthTxns
+          .filter(t => t.type === 'EXPENSE' && bIds.includes(t.category_id))
+          .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+        const limit = Number(b.amount) || 0;
+        return {
+          'Month': curMonth,
+          'Category': bCat.name,
+          'Limit': limit,
+          'Used': used,
+          'Remaining': limit - used,
+          'Used (%)': limit > 0 ? Math.round((used / limit) * 100) : 0
+        };
+      });
+      const ws5 = XLSX.utils.json_to_sheet(budgetRows);
+      XLSX.utils.book_append_sheet(wb, ws5, 'Budget vs Actual');
 
       const accRows = appState.accounts.map(a => ({
         'Account': a.name,
