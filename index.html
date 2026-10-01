@@ -408,6 +408,18 @@
           </div>
         </div>
 
+        <!-- Chart Month Filter -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-base text-slate-900 dark:text-white">Grafik & Riwayat</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Pilih bulan untuk melihat riwayat arus kas & pengeluaran per kategori</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <label for="dash-month-selector" class="hidden sm:block text-xs font-medium text-slate-400">Bulan grafik:</label>
+            <input type="month" id="dash-month-selector" onchange="renderDashboard()" class="py-2 px-3 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+
         <!-- Charts Row -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col">
@@ -417,8 +429,8 @@
                 <p class="text-xs text-slate-500 dark:text-slate-400">Arus kas masuk vs pengeluaran</p>
               </div>
               <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs">
-                <button onclick="setCashFlowPeriod('month')" id="btn-flow-month" class="px-3 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 shadow-xs">This Month</button>
-                <button onclick="setCashFlowPeriod('year')" id="btn-flow-year" class="px-3 py-1 rounded-lg font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400">This Year</button>
+                <button onclick="setCashFlowPeriod('month')" id="btn-flow-month" class="px-3 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 shadow-xs">Bulanan</button>
+                <button onclick="setCashFlowPeriod('year')" id="btn-flow-year" class="px-3 py-1 rounded-lg font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400">Tahunan</button>
               </div>
             </div>
             <div class="relative flex-1 min-h-[260px]">
@@ -429,7 +441,7 @@
           <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col">
             <div class="mb-4">
               <h3 class="font-bold text-base text-slate-900 dark:text-white">Expense by Category</h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Distribusi pengeluaran bulan ini</p>
+              <p id="dash-pie-subtitle" class="text-xs text-slate-500 dark:text-slate-400">Distribusi pengeluaran bulan ini</p>
             </div>
             <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
               <canvas id="categoryPieChart"></canvas>
@@ -492,6 +504,12 @@
               <span id="active-filter-badge" class="hidden w-4 h-4 rounded-full bg-indigo-600 text-white text-[10px] items-center justify-center font-bold">0</span>
             </button>
 
+            <!-- Bulk Select Button -->
+            <button id="bulk-btn-transactions" onclick="toggleBulkMode('transactions')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs md:text-sm flex items-center gap-1.5 transition shrink-0" title="Pilih banyak transaksi untuk dihapus">
+              <i data-lucide="check-square" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">Pilih</span>
+            </button>
+
             <!-- Export Quick Action -->
             <button onclick="navigateTo('impexp')" class="p-2.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 shrink-0" title="Export Transactions">
               <i data-lucide="download" class="w-4 h-4"></i>
@@ -506,33 +524,10 @@
             <button onclick="setTxFilterType('TRANSFER')" id="filter-chip-transfer" class="chip-filter px-3 py-1.5 rounded-full font-medium whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">🟣 Transfer</button>
           </div>
 
-          <!-- Expandable Secondary Filters -->
+          <!-- Expandable Secondary Filters (kini hanya filter tanggal) -->
           <div id="advanced-filters-panel" class="hidden pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 fade-in text-xs">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-500 mb-1">PENGINPUT</label>
-                <select id="tx-filter-inputter" onchange="applyTransactionFilters()" class="w-full py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none">
-                  <option value="ALL">Semua Penginput</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-500 mb-1">KATEGORI</label>
-                <select id="tx-filter-category" onchange="applyTransactionFilters()" class="w-full py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none">
-                  <option value="ALL">Semua Kategori</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-500 mb-1">AKUN / DOMPET</label>
-                <select id="tx-filter-account" onchange="applyTransactionFilters()" class="w-full py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none">
-                  <option value="ALL">Semua Akun</option>
-                </select>
-              </div>
-            </div>
-
             <!-- Date Range Controls -->
-            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-2 text-xs">
+            <div class="flex flex-wrap items-center gap-2 text-xs">
               <div class="flex items-center gap-1.5 text-slate-500 font-semibold shrink-0">
                 <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-500"></i>
                 <span>Tanggal:</span>
@@ -562,6 +557,8 @@
               </button>
             </div>
           </div>
+
+          <div id="tx-bulk-bar"></div>
         </div>
 
         <!-- MOBILE TRANSACTIONS LIST VIEW (Cards Feed) -->
@@ -573,6 +570,7 @@
             <table class="w-full text-left text-xs md:text-sm">
               <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
                 <tr>
+                  <th id="tx-bulk-th" class="hidden py-3 px-3 w-8"><input type="checkbox" onchange="bulkToggleAll('transactions')" class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 cursor-pointer"></th>
                   <th class="py-3 px-4">Date</th>
                   <th class="py-3 px-4">Type</th>
                   <th class="py-3 px-4">Description</th>
@@ -607,8 +605,15 @@
               <i data-lucide="plus" class="w-4 h-4"></i>
               <span>Add Account</span>
             </button>
+            <button id="bulk-btn-accounts" onclick="toggleBulkMode('accounts')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs md:text-sm flex items-center gap-1.5 transition" title="Pilih banyak akun untuk dihapus">
+              <i data-lucide="check-square" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">Pilih</span>
+            </button>
           </div>
         </div>
+
+        <div id="account-bulk-bar"></div>
+
         <div id="accounts-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
       </section>
 
@@ -628,8 +633,14 @@
               <i data-lucide="plus" class="w-4 h-4"></i>
               <span>Set Budget</span>
             </button>
+            <button id="bulk-btn-budgets" onclick="toggleBulkMode('budgets')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs md:text-sm flex items-center gap-1.5 transition" title="Pilih banyak limit untuk dihapus">
+              <i data-lucide="check-square" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">Pilih</span>
+            </button>
           </div>
         </div>
+
+        <div id="budget-bulk-bar"></div>
 
         <!-- Info: Atur 1 Kali, Berlaku Seterusnya -->
         <div class="p-4 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5 border border-indigo-200 dark:border-indigo-900/50 flex items-start gap-3">
@@ -665,13 +676,21 @@
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-lg font-bold text-slate-900 dark:text-white">Transaction Categories</h2>
-            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Atur kategori pemasukan & pengeluaran kustom</p>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Kelola kategori 2 level: grup & sub-kategori (mis. Transport → Ojol, Bensin)</p>
           </div>
-          <button onclick="openCategoryModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>Add Category</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="openCategoryModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add Category</span>
+            </button>
+            <button id="bulk-btn-categories" onclick="toggleBulkMode('categories')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs md:text-sm flex items-center gap-1.5 transition" title="Pilih banyak kategori untuk dihapus">
+              <i data-lucide="check-square" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">Pilih</span>
+            </button>
+          </div>
         </div>
+
+        <div id="category-bulk-bar"></div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
@@ -750,17 +769,26 @@
             <h2 class="text-lg font-bold text-slate-900 dark:text-white">Recurring Transactions & Subscriptions</h2>
             <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Jadwal transaksi rutin langganan atau pengeluaran tetap</p>
           </div>
-          <button onclick="openRecurringModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>Add Recurring</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="openRecurringModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add Recurring</span>
+            </button>
+            <button id="bulk-btn-recurring" onclick="toggleBulkMode('recurring')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs md:text-sm flex items-center gap-1.5 transition" title="Pilih banyak data berulang untuk dihapus">
+              <i data-lucide="check-square" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">Pilih</span>
+            </button>
+          </div>
         </div>
+
+        <div id="recurring-bulk-bar"></div>
 
         <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs md:text-sm">
               <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold border-b border-slate-200 dark:border-slate-800">
                 <tr>
+                  <th id="recurring-bulk-th" class="hidden py-3 px-3 w-8"><input type="checkbox" onchange="bulkToggleAll('recurring')" class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 cursor-pointer"></th>
                   <th class="py-3 px-4">Name</th>
                   <th class="py-3 px-4">Dinput Oleh</th>
                   <th class="py-3 px-4">Type</th>
@@ -1156,10 +1184,15 @@
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">TYPE</label>
-          <select id="cat-type" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+          <select id="cat-type" onchange="populateCategoryParentOptions()" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
             <option value="EXPENSE">Expense</option>
             <option value="INCOME">Income</option>
           </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">GRUP INDUK (OPSIONAL)</label>
+          <select id="cat-parent" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></select>
+          <p class="mt-1.5 text-[11px] text-slate-400 leading-relaxed">Pilih grup agar kategori ini jadi sub-kategori (mis. Transport → Ojol, Bensin). Biarkan kosong untuk kategori utama.</p>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">ACCENT COLOR</label>
@@ -1189,7 +1222,14 @@
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">CATEGORY</label>
-          <select id="budget-category" required onchange="prefillBudgetAmount()" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></select>
+          <input type="hidden" id="budget-category" value="">
+          <div id="budget-category-dropdown" class="relative">
+            <button type="button" onclick="toggleBudgetCategoryDropdown()" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2 text-left">
+              <span id="budget-category-label" class="truncate text-slate-700 dark:text-slate-200">Pilih kategori...</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 shrink-0"></i>
+            </button>
+            <div id="budget-category-panel" class="hidden absolute z-20 mt-2 w-full max-h-64 overflow-y-auto rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-1.5 space-y-0.5"></div>
+          </div>
           <p id="budget-existing-hint" class="hidden mt-1.5 text-[11px] text-amber-600 dark:text-amber-400">
             Kategori ini sudah punya limit — simpan untuk memperbarui limit tersebut.
           </p>
@@ -1295,6 +1335,8 @@
     const STORAGE_KEY = 'KASTARA_APP_STATE_V2';
     const CFG_KEY = 'KASTARA_SUPABASE_CFG_V2';
     const AUTH_SESSION_KEY = 'DHARA_AUTH_SESSION_V2';
+    const CATEGORY_GROUPS_FLAG = 'DHARA_CATEGORY_GROUPS_V1';
+    const TAXONOMY_PARENTS_FLAG = 'DHARA_EXPENSE_TAXONOMY_V1';
 
     // EMBEDDED SUPABASE CREDENTIALS (AUTO-CONNECTED)
     const DEFAULT_SUPABASE_URL = 'https://xeoevhykcljwkutowvsy.supabase.co';
@@ -1437,15 +1479,19 @@ CREATE TABLE IF NOT EXISTS accounts (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. CATEGORIES TABLE
+-- 2. CATEGORIES TABLE (dukung 2 level: grup & sub-kategori)
 CREATE TABLE IF NOT EXISTS categories (
   id TEXT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   type VARCHAR(20) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
   color VARCHAR(20) NOT NULL DEFAULT '#6366f1',
   icon VARCHAR(50) DEFAULT 'tag',
+  parent_id TEXT REFERENCES categories(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Migrasi untuk database lama (aman dijalankan berulang kali)
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS parent_id TEXT REFERENCES categories(id) ON DELETE SET NULL;
 
 -- 3. TRANSACTIONS TABLE
 CREATE TABLE IF NOT EXISTS transactions (
@@ -1528,12 +1574,18 @@ ON CONFLICT (username) DO NOTHING;
         { id: 'acc-3', name: 'GoPay / E-Wallet', type: 'E-Wallet', initial_balance: 350000, current_balance: 350000, icon: 'smartphone', input_by: 'sonny' }
       ],
       categories: [
-        { id: 'cat-1', name: 'Salary & Wages', type: 'INCOME', color: '#10b981', icon: 'banknote' },
-        { id: 'cat-2', name: 'Freelance & Bisnis', type: 'INCOME', color: '#059669', icon: 'briefcase' },
-        { id: 'cat-3', name: 'Food & Groceries', type: 'EXPENSE', color: '#f59e0b', icon: 'utensils' },
-        { id: 'cat-4', name: 'Transport & Fuel', type: 'EXPENSE', color: '#3b82f6', icon: 'car' },
-        { id: 'cat-5', name: 'Bills & Utilities', type: 'EXPENSE', color: '#ef4444', icon: 'zap' },
-        { id: 'cat-6', name: 'Entertainment & Leisure', type: 'EXPENSE', color: '#ec4899', icon: 'film' }
+        { id: 'grp-inc-rutin', name: 'Pemasukan Rutin', type: 'INCOME', color: '#10b981', icon: 'banknote', parent_id: null },
+        { id: 'cat-1', name: 'Salary & Wages', type: 'INCOME', color: '#10b981', icon: 'banknote', parent_id: 'grp-inc-rutin' },
+        { id: 'grp-inc-usaha', name: 'Usaha & Freelance', type: 'INCOME', color: '#059669', icon: 'briefcase', parent_id: null },
+        { id: 'cat-2', name: 'Freelance & Bisnis', type: 'INCOME', color: '#059669', icon: 'briefcase', parent_id: 'grp-inc-usaha' },
+        { id: 'grp-exp-belanja', name: 'Belanja Bulanan', type: 'EXPENSE', color: '#f59e0b', icon: 'shopping-cart', parent_id: null },
+        { id: 'cat-3', name: 'Food & Groceries', type: 'EXPENSE', color: '#f59e0b', icon: 'utensils', parent_id: 'grp-exp-belanja' },
+        { id: 'grp-exp-transport', name: 'Transport & Kendaraan', type: 'EXPENSE', color: '#3b82f6', icon: 'car', parent_id: null },
+        { id: 'cat-4', name: 'Transport & Fuel', type: 'EXPENSE', color: '#3b82f6', icon: 'car', parent_id: 'grp-exp-transport' },
+        { id: 'grp-exp-tagihan', name: 'Tagihan & Langganan', type: 'EXPENSE', color: '#ef4444', icon: 'zap', parent_id: null },
+        { id: 'cat-5', name: 'Bills & Utilities', type: 'EXPENSE', color: '#ef4444', icon: 'zap', parent_id: 'grp-exp-tagihan' },
+        { id: 'grp-exp-gaya', name: 'Gaya Hidup & Hobi', type: 'EXPENSE', color: '#ec4899', icon: 'sparkles', parent_id: null },
+        { id: 'cat-6', name: 'Entertainment & Leisure', type: 'EXPENSE', color: '#ec4899', icon: 'film', parent_id: 'grp-exp-gaya' }
       ],
       budgets: [],
       transactions: [],
@@ -1872,6 +1924,364 @@ ON CONFLICT (username) DO NOTHING;
       );
     }
 
+    /* ===== BULK DELETE (PILIH BANYAK LALU HAPUS) ===== */
+    const bulkSelectState = {};
+    let lastFilteredTxIds = [];
+
+    function getBulkState(viewKey) {
+      if (!bulkSelectState[viewKey]) bulkSelectState[viewKey] = { active: false, ids: new Set() };
+      return bulkSelectState[viewKey];
+    }
+
+    function getBulkAllIds(viewKey) {
+      if (viewKey === 'transactions') return lastFilteredTxIds;
+      if (viewKey === 'budgets') return appState.budgets.map(b => b.id);
+      if (viewKey === 'categories') return appState.categories.map(c => c.id);
+      if (viewKey === 'accounts') return appState.accounts.map(a => a.id);
+      if (viewKey === 'recurring') return appState.recurring.map(r => r.id);
+      return [];
+    }
+
+    function toggleBulkMode(viewKey) {
+      const st = getBulkState(viewKey);
+      st.active = !st.active;
+      st.ids.clear();
+      renderCurrentView();
+    }
+
+    function toggleBulkItem(viewKey, id) {
+      const st = getBulkState(viewKey);
+      if (st.ids.has(id)) st.ids.delete(id); else st.ids.add(id);
+      renderCurrentView();
+    }
+
+    function bulkToggleAll(viewKey) {
+      const st = getBulkState(viewKey);
+      const allIds = getBulkAllIds(viewKey);
+      const allSelected = allIds.length > 0 && allIds.every(id => st.ids.has(id));
+      st.ids.clear();
+      if (!allSelected) allIds.forEach(id => st.ids.add(id));
+      renderCurrentView();
+    }
+
+    function bulkCheckboxHtml(viewKey, id) {
+      const st = getBulkState(viewKey);
+      return `<input type="checkbox" ${st.ids.has(id) ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleBulkItem('${viewKey}', '${id}')" class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0">`;
+    }
+
+    function updateBulkToggleBtn(viewKey) {
+      const btn = document.getElementById('bulk-btn-' + viewKey);
+      if (!btn) return;
+      const st = getBulkState(viewKey);
+      btn.className = st.active
+        ? 'px-3.5 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs md:text-sm flex items-center gap-1.5 shadow-sm transition shrink-0'
+        : 'px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs md:text-sm flex items-center gap-1.5 transition shrink-0';
+    }
+
+    function bulkBarHtml(viewKey) {
+      const st = getBulkState(viewKey);
+      if (!st.active) return '';
+      const count = st.ids.size;
+      return `
+        <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/60 text-xs">
+          <span class="font-semibold text-indigo-700 dark:text-indigo-300">${count} dipilih</span>
+          <div class="flex items-center gap-2">
+            <button onclick="bulkToggleAll('${viewKey}')" class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-300 font-semibold transition">Pilih Semua</button>
+            <button onclick="promptBulkDelete('${viewKey}')" ${count === 0 ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed">Hapus Terpilih</button>
+            <button onclick="toggleBulkMode('${viewKey}')" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold transition">Batal</button>
+          </div>
+        </div>`;
+    }
+
+    function promptBulkDelete(viewKey) {
+      const st = getBulkState(viewKey);
+      const ids = Array.from(st.ids);
+      if (ids.length === 0) return;
+      openConfirmModal(
+        'Hapus Terpilih',
+        `Hapus ${ids.length} data terpilih? Tindakan ini tidak dapat dibatalkan.`,
+        async () => {
+          await performBulkDelete(viewKey, ids);
+          st.ids.clear();
+          st.active = false;
+          renderCurrentView();
+        },
+        'Hapus',
+        'bg-rose-600 hover:bg-rose-700'
+      );
+    }
+
+    async function performBulkDelete(viewKey, ids) {
+      const idSet = new Set(ids);
+      if (viewKey === 'transactions') {
+        appState.transactions = appState.transactions.filter(t => !idSet.has(t.id));
+        if (appState.supabase) { try { await appState.supabase.from('transactions').delete().in('id', ids); } catch (e) {} }
+        StorageService.saveLocal();
+        StorageService.recalculateAllAccountBalances();
+      } else if (viewKey === 'budgets') {
+        appState.budgets = appState.budgets.filter(b => !idSet.has(b.id));
+        if (appState.supabase) { try { await appState.supabase.from('budgets').delete().in('id', ids); } catch (e) {} }
+        StorageService.saveLocal();
+      } else if (viewKey === 'categories') {
+        // Sub-kategori dari grup yang dihapus otomatis jadi kategori mandiri.
+        const orphaned = appState.categories.filter(c => c.parent_id && idSet.has(c.parent_id) && !idSet.has(c.id));
+        orphaned.forEach(c => c.parent_id = null);
+        appState.categories = appState.categories.filter(c => !idSet.has(c.id));
+        if (appState.supabase) {
+          try {
+            await appState.supabase.from('categories').delete().in('id', ids);
+            if (orphaned.length > 0) await appState.supabase.from('categories').upsert(orphaned.map(categoryCloudPayload));
+          } catch (e) {}
+        }
+        StorageService.saveLocal();
+      } else if (viewKey === 'accounts') {
+        appState.accounts = appState.accounts.filter(a => !idSet.has(a.id));
+        if (appState.supabase) { try { await appState.supabase.from('accounts').delete().in('id', ids); } catch (e) {} }
+        StorageService.saveLocal();
+        StorageService.recalculateAllAccountBalances();
+      } else if (viewKey === 'recurring') {
+        appState.recurring = appState.recurring.filter(r => !idSet.has(r.id));
+        if (appState.supabase) { try { await appState.supabase.from('recurring_transactions').delete().in('id', ids); } catch (e) {} }
+        StorageService.saveLocal();
+      }
+      showToast(`${ids.length} data berhasil dihapus`, 'success');
+    }
+
+    /* CATEGORY TREE (2 LEVEL: GRUP -> SUB-KATEGORI) */
+    let categoriesHaveParentColumn = true; // deteksi otomatis saat sinkronisasi cloud
+
+    function getChildCategories(parentId) {
+      return appState.categories.filter(c => c.parent_id === parentId);
+    }
+
+    function isGroupCategory(catId) {
+      return appState.categories.some(c => c.parent_id === catId);
+    }
+
+    function getTopLevelCategoryId(catId) {
+      const cat = appState.categories.find(c => c.id === catId);
+      if (!cat || !cat.parent_id) return cat ? cat.id : catId;
+      const parent = appState.categories.find(c => c.id === cat.parent_id);
+      return parent ? parent.id : cat.id;
+    }
+
+    // Semua ID kategori dalam satu grup (grup itu sendiri + sub-kategorinya).
+    function getCategoryTreeIds(catId) {
+      const ids = [catId];
+      getChildCategories(catId).forEach(c => ids.push(c.id));
+      return ids;
+    }
+
+    // Opsi <select>: kategori utama tanpa anak tampil biasa, grup tampil sebagai <optgroup>.
+    function buildCategoryOptionsHtml(cats) {
+      const topLevel = cats.filter(c => !c.parent_id);
+      const childrenOf = (id) => cats.filter(c => c.parent_id === id);
+      let flatOptions = '';
+      let groupOptions = '';
+      topLevel.forEach(p => {
+        const kids = childrenOf(p.id);
+        if (kids.length === 0) {
+          flatOptions += `<option value="${p.id}">${p.name}</option>`;
+        } else {
+          groupOptions += `<optgroup label="${p.name}">` +
+            kids.map(k => `<option value="${k.id}">${k.name}</option>`).join('') +
+            `</optgroup>`;
+        }
+      });
+      return flatOptions + groupOptions;
+    }
+
+    // ===== Picker kategori budget: expandable per grup, hanya sub-kategori & kategori mandiri =====
+    const expandedBudgetPickerGroups = new Set();
+
+    function toggleBudgetCategoryDropdown() {
+      const panel = document.getElementById('budget-category-panel');
+      if (!panel) return;
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) renderBudgetCategoryPicker();
+    }
+
+    function toggleBudgetPickerGroup(id) {
+      const container = document.getElementById('budget-picker-children-' + id);
+      const chevron = document.getElementById('budget-picker-chevron-' + id);
+      if (!container) return;
+      const willExpand = container.classList.contains('hidden');
+      container.classList.toggle('hidden', !willExpand);
+      if (chevron) chevron.classList.toggle('rotate-90', willExpand);
+      if (willExpand) expandedBudgetPickerGroups.add(id); else expandedBudgetPickerGroups.delete(id);
+    }
+
+    function renderBudgetCategoryPicker() {
+      const panel = document.getElementById('budget-category-panel');
+      if (!panel) return;
+      const selectedId = document.getElementById('budget-category').value;
+      const topLevel = appState.categories.filter(c => c.type === 'EXPENSE' && !c.parent_id);
+
+      let html = '';
+      topLevel.forEach(parent => {
+        const kids = getChildCategories(parent.id);
+        if (kids.length === 0) {
+          html += `
+            <button type="button" onclick="selectBudgetCategory('${parent.id}')" class="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs ${selectedId === parent.id ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'}">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${parent.color}"></span>
+              <span class="truncate">${parent.name}</span>
+            </button>`;
+        } else {
+          const expanded = expandedBudgetPickerGroups.has(parent.id);
+          html += `
+            <div>
+              <button type="button" onclick="toggleBudgetPickerGroup('${parent.id}')" class="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <span class="flex items-center gap-2 min-w-0">
+                  <i data-lucide="chevron-right" id="budget-picker-chevron-${parent.id}" class="w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}"></i>
+                  <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${parent.color}"></span>
+                  <span class="truncate">${parent.name}</span>
+                </span>
+                <span class="text-[10px] font-medium text-slate-400 shrink-0">${kids.length} sub</span>
+              </button>
+              <div id="budget-picker-children-${parent.id}" class="mt-0.5 space-y-0.5 ${expanded ? '' : 'hidden'}">
+                ${kids.map(k => `
+                  <button type="button" onclick="selectBudgetCategory('${k.id}')" class="w-full flex items-center gap-2 pl-7 pr-2.5 py-2 rounded-lg text-left text-xs ${selectedId === k.id ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}">
+                    <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${k.color}"></span>
+                    <span class="truncate">${k.name}</span>
+                  </button>`).join('')}
+              </div>
+            </div>`;
+        }
+      });
+
+      panel.innerHTML = html || '<p class="px-2.5 py-3 text-xs text-slate-400">Belum ada kategori pengeluaran.</p>';
+      lucide.createIcons();
+    }
+
+    function selectBudgetCategory(catId) {
+      setBudgetCategorySelection(catId);
+      const panel = document.getElementById('budget-category-panel');
+      if (panel) panel.classList.add('hidden');
+      prefillBudgetAmount();
+    }
+
+    function setBudgetCategorySelection(catId) {
+      const cat = appState.categories.find(c => c.id === catId);
+      document.getElementById('budget-category').value = cat ? cat.id : '';
+      const label = document.getElementById('budget-category-label');
+      if (label) label.textContent = cat ? cat.name : 'Pilih kategori...';
+      // Buka otomatis grup induknya supaya sub-kategori yang dipilih terlihat
+      if (cat && cat.parent_id) expandedBudgetPickerGroups.add(cat.parent_id);
+    }
+
+    function categoryCloudPayload(cat) {
+      const payload = Object.assign({}, cat);
+      if (!categoriesHaveParentColumn) delete payload.parent_id;
+      return payload;
+    }
+
+    // Migrasi satu kali: kelompokkan kategori lama yang masih datar (flat) ke grup standar.
+    function ensureCategoryGroups() {
+      try {
+        if (localStorage.getItem(CATEGORY_GROUPS_FLAG)) return;
+      } catch (e) { return; }
+
+      const cats = appState.categories || [];
+      const markDone = () => { try { localStorage.setItem(CATEGORY_GROUPS_FLAG, '1'); } catch (e) {} };
+      // Lewati jika struktur taxonomy baru sudah ada.
+      if (cats.length < 8 || cats.some(c => c.parent_id) || cats.some(c => c.id === 'grp-exp2-kebutuhan-utama')) { markDone(); return; }
+
+      const groupDefs = [
+        { key: 'belanja', type: 'EXPENSE', id: 'grp-exp-belanja', name: 'Belanja Bulanan', color: '#f59e0b', icon: 'shopping-cart' },
+        { key: 'tagihan', type: 'EXPENSE', id: 'grp-exp-tagihan', name: 'Tagihan & Langganan', color: '#ef4444', icon: 'zap' },
+        { key: 'transport', type: 'EXPENSE', id: 'grp-exp-transport', name: 'Transport & Kendaraan', color: '#3b82f6', icon: 'car' },
+        { key: 'keluarga', type: 'EXPENSE', id: 'grp-exp-keluarga', name: 'Keluarga & Anak', color: '#8b5cf6', icon: 'baby' },
+        { key: 'kesehatan', type: 'EXPENSE', id: 'grp-exp-kesehatan', name: 'Kesehatan & Asuransi', color: '#10b981', icon: 'heart-pulse' },
+        { key: 'gaya', type: 'EXPENSE', id: 'grp-exp-gaya', name: 'Gaya Hidup & Hobi', color: '#ec4899', icon: 'sparkles' },
+        { key: 'donasi', type: 'EXPENSE', id: 'grp-exp-donasi', name: 'Donasi & Sosial', color: '#14b8a6', icon: 'hand-heart' },
+        { key: 'rutin', type: 'INCOME', id: 'grp-inc-rutin', name: 'Pemasukan Rutin', color: '#10b981', icon: 'banknote' },
+        { key: 'usaha', type: 'INCOME', id: 'grp-inc-usaha', name: 'Usaha & Freelance', color: '#059669', icon: 'briefcase' },
+        { key: 'pasif', type: 'INCOME', id: 'grp-inc-pasif', name: 'Pasif & Lainnya', color: '#0ea5e9', icon: 'trending-up' }
+      ];
+
+      const rules = [
+        { key: 'belanja', type: 'EXPENSE', match: ['dapur', 'supermarket', 'kebutuhan rumah', 'kebersihan'] },
+        { key: 'tagihan', type: 'EXPENSE', match: ['listrik', 'pln', 'air & gas', 'air dan gas', 'streaming', 'langganan', 'netflix', 'spotify', 'internet', 'wifi', 'pulsa', 'tagihan'] },
+        { key: 'transport', type: 'EXPENSE', match: ['transport', 'ojol', 'bensin', 'bbm', 'servis', 'tol', 'parkir'] },
+        { key: 'keluarga', type: 'EXPENSE', match: ['spp', 'sekolah', 'susu', 'pampers', 'bayi', 'anak'] },
+        { key: 'kesehatan', type: 'EXPENSE', match: ['kesehatan', 'dokter', 'obat', 'asuransi', 'bpjs'] },
+        { key: 'gaya', type: 'EXPENSE', match: ['pakaian', 'fashion', 'skincare', 'perawatan diri', 'hobi', 'liburan', 'rekreasi', 'gadget'] },
+        { key: 'donasi', type: 'EXPENSE', match: ['zakat', 'sedekah', 'donasi'] },
+        { key: 'usaha', type: 'INCOME', match: ['freelance', 'side job', 'usaha', 'bisnis'] },
+        { key: 'rutin', type: 'INCOME', match: ['gaji', 'tunjangan', 'salary'] },
+        { key: 'pasif', type: 'INCOME', match: ['investasi', 'dividen', 'cashback', 'hadiah', 'bonus', 'thr', 'lain-lain', 'lainnya', 'lain'] }
+      ];
+
+      const assignments = {};
+      cats.forEach(c => {
+        if (c.parent_id) return;
+        const lower = (c.name || '').toLowerCase();
+        const rule = rules.filter(r => r.type === c.type).find(r => r.match.some(k => lower.includes(k)));
+        if (rule) assignments[c.id] = rule.key;
+      });
+
+      if (Object.keys(assignments).length < 3) { markDone(); return; }
+
+      const usedKeys = new Set(Object.values(assignments));
+      groupDefs.filter(g => usedKeys.has(g.key)).forEach(g => {
+        if (!cats.some(c => c.id === g.id)) {
+          appState.categories.push({ id: g.id, name: g.name, type: g.type, color: g.color, icon: g.icon, parent_id: null });
+        }
+      });
+      Object.keys(assignments).forEach(catId => {
+        const group = groupDefs.find(g => g.key === assignments[catId]);
+        const cat = appState.categories.find(c => c.id === catId);
+        if (group && cat) cat.parent_id = group.id;
+      });
+
+      markDone();
+      StorageService.saveLocal();
+    }
+
+    // Taxonomy expense baru yang sudah di-inject ke database (sub -> grup).
+    // Menempelkan sub ke grupnya otomatis, termasuk saat kolom parent_id belum ada di cloud.
+    const TAXONOMY_GROUP_IDS = {
+      'cat-1790845589693': 'grp-exp2-kebutuhan-utama', // Rumah Tangga (kategori yang sudah ada)
+      'cat-exp2-rumah-tangga': 'grp-exp2-kebutuhan-utama',
+      'cat-exp2-makanan': 'grp-exp2-kebutuhan-utama',
+      'cat-exp2-transportasi': 'grp-exp2-kebutuhan-utama',
+      'cat-exp2-kesehatan': 'grp-exp2-kebutuhan-utama',
+      'cat-exp2-belanja-pribadi': 'grp-exp2-personal',
+      'cat-exp2-perawatan-diri': 'grp-exp2-personal',
+      'cat-exp2-hiburan': 'grp-exp2-personal',
+      'cat-exp2-hobi': 'grp-exp2-personal',
+      'cat-exp2-keluarga': 'grp-exp2-keluarga',
+      'cat-exp2-anak': 'grp-exp2-keluarga',
+      'cat-exp2-orang-tua': 'grp-exp2-keluarga',
+      'cat-exp2-sosial': 'grp-exp2-keluarga',
+      'cat-exp2-pekerjaan': 'grp-exp2-pekerjaan-pendidikan',
+      'cat-exp2-pendidikan': 'grp-exp2-pekerjaan-pendidikan',
+      'cat-exp2-bisnis': 'grp-exp2-pekerjaan-pendidikan',
+      'cat-exp2-cicilan': 'grp-exp2-keuangan-lainnya',
+      'cat-exp2-pajak-admin': 'grp-exp2-keuangan-lainnya',
+      'cat-exp2-hadiah-donasi': 'grp-exp2-keuangan-lainnya',
+      'cat-exp2-lainnya': 'grp-exp2-keuangan-lainnya'
+    };
+
+    function applyKnownTaxonomyParents() {
+      try {
+        if (localStorage.getItem(TAXONOMY_PARENTS_FLAG)) return;
+      } catch (e) { return; }
+      let anyChildFound = false;
+      Object.keys(TAXONOMY_GROUP_IDS).forEach(childId => {
+        const child = appState.categories.find(c => c.id === childId);
+        if (!child) return;
+        anyChildFound = true;
+        if (child.parent_id) return;
+        const parent = appState.categories.find(c => c.id === TAXONOMY_GROUP_IDS[childId]);
+        if (parent) child.parent_id = parent.id;
+      });
+      if (anyChildFound) {
+        try { localStorage.setItem(TAXONOMY_PARENTS_FLAG, '1'); } catch (e) {}
+        StorageService.saveLocal();
+      }
+    }
+
     /* BUDGET PER KATEGORI - SATU LIMIT UNTUK SEMUA BULAN */
     function budgetRecency(b) {
       if (b.updated_at) {
@@ -1934,8 +2344,14 @@ ON CONFLICT (username) DO NOTHING;
           this.loadSeed();
         }
 
-        // Pastikan hanya ada satu limit per kategori
+        // Budget per kategori: pastikan hanya ada satu limit per kategori
         normalizeBudgets();
+
+        // Kategori: migrasi data lama (flat) menjadi 2 level (grup + sub-kategori)
+        ensureCategoryGroups();
+
+        // Taxonomy expense baru: tempelkan sub ke grupnya
+        applyKnownTaxonomyParents();
 
         let url = DEFAULT_SUPABASE_URL;
         let key = DEFAULT_SUPABASE_KEY;
@@ -2027,11 +2443,25 @@ ON CONFLICT (username) DO NOTHING;
             appState.accounts = accounts;
           } else if (!accounts || accounts.length === 0) {
             await appState.supabase.from('accounts').upsert(appState.accounts);
-            await appState.supabase.from('categories').upsert(appState.categories);
+            await appState.supabase.from('categories').upsert(appState.categories.map(categoryCloudPayload));
           }
 
           const { data: categories } = await appState.supabase.from('categories').select('*');
-          if (categories && categories.length > 0) appState.categories = categories;
+          if (categories && categories.length > 0) {
+            // Deteksi dukungan kolom parent_id di database cloud
+            categoriesHaveParentColumn = categories.some(c => Object.prototype.hasOwnProperty.call(c, 'parent_id'));
+            const localCatsById = new Map(appState.categories.map(c => [c.id, c]));
+            appState.categories = categories.map(c => {
+              const local = localCatsById.get(c.id);
+              const cloudParent = categoriesHaveParentColumn ? (c.parent_id || null) : null;
+              return Object.assign({}, c, { parent_id: cloudParent || (local ? local.parent_id || null : null) });
+            });
+          }
+          ensureCategoryGroups();
+          applyKnownTaxonomyParents();
+          if (categoriesHaveParentColumn && appState.categories.length > 0) {
+            try { await appState.supabase.from('categories').upsert(appState.categories.map(categoryCloudPayload)); } catch (e) {}
+          }
 
           const { data: transactions } = await appState.supabase.from('transactions').select('*');
           if (transactions && transactions.length > 0) appState.transactions = transactions;
@@ -2233,6 +2663,19 @@ ON CONFLICT (username) DO NOTHING;
         currentMonthBadge.textContent = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
       }
 
+      // Filter bulan untuk grafik & riwayat (kartu ringkasan tetap mengikuti bulan berjalan)
+      const dashMonthInput = document.getElementById('dash-month-selector');
+      if (dashMonthInput && !dashMonthInput.value) dashMonthInput.value = currentMonthStr;
+      const chartMonthStr = (dashMonthInput && dashMonthInput.value) || currentMonthStr;
+      const chartMonthTxns = appState.transactions.filter(t => (t.transaction_date || '').startsWith(chartMonthStr));
+
+      const pieSubtitle = document.getElementById('dash-pie-subtitle');
+      if (pieSubtitle) {
+        const [chartYear, chartMonth] = chartMonthStr.split('-');
+        const monthLabel = monthNames[Number(chartMonth) - 1] || chartMonthStr;
+        pieSubtitle.textContent = `Distribusi pengeluaran ${monthLabel} ${chartYear}`;
+      }
+
       const totalBalance = appState.accounts.reduce((sum, acc) => sum + (Number(acc.current_balance) || 0), 0);
       document.getElementById('dash-total-balance').textContent = formatIDR(totalBalance);
       document.getElementById('dash-accounts-count').textContent = appState.accounts.length;
@@ -2252,21 +2695,20 @@ ON CONFLICT (username) DO NOTHING;
       const activeBudgets = appState.budgets; // limit berlaku untuk semua bulan
       const totalBudgetLimit = activeBudgets.reduce((sum, b) => sum + (Number(b.amount) || 0), 0);
 
-      let totalBudgetedExpenses = 0;
-      activeBudgets.forEach(b => {
-        const catExp = thisMonthTxns
-          .filter(t => t.type === 'EXPENSE' && t.category_id === b.category_id)
-          .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-        totalBudgetedExpenses += catExp;
-      });
+      // Pemakaian dihitung unik per kategori (limit grup + limit sub tidak dihitung dobel).
+      const coveredBudgetCatIds = new Set();
+      activeBudgets.forEach(b => getCategoryTreeIds(b.category_id).forEach(id => coveredBudgetCatIds.add(id)));
+      const totalBudgetedExpenses = thisMonthTxns
+        .filter(t => t.type === 'EXPENSE' && coveredBudgetCatIds.has(t.category_id))
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
       const budgetRemaining = Math.max(0, totalBudgetLimit - totalBudgetedExpenses);
       document.getElementById('dash-budget-remaining').textContent = formatIDR(budgetRemaining);
       const budgetPct = totalBudgetLimit > 0 ? Math.round((totalBudgetedExpenses / totalBudgetLimit) * 100) : 0;
       document.getElementById('dash-budget-pct-text').textContent = `${budgetPct}% terpakai dari limit ${formatIDR(totalBudgetLimit)}`;
 
-      renderCashFlowChart(currentMonthStr);
-      renderCategoryPieChart(thisMonthTxns);
+      renderCashFlowChart(chartMonthStr);
+      renderCategoryPieChart(chartMonthTxns);
       renderDashboardBudgetProgress(currentMonthStr, thisMonthTxns);
       renderDashboardUpcomingPayments();
       renderDashboardRecentTransactions();
@@ -2300,7 +2742,9 @@ ON CONFLICT (username) DO NOTHING;
       let expenseData = [];
 
       if (appState.cashFlowPeriod === 'month') {
-        for (let i = 1; i <= 30; i++) {
+        const [yy, mm] = currentMonthStr.split('-').map(Number);
+        const daysInMonth = (yy && mm) ? new Date(yy, mm, 0).getDate() : 30;
+        for (let i = 1; i <= daysInMonth; i++) {
           labels.push(`D${i}`);
           const dayStr = `${currentMonthStr}-${String(i).padStart(2, '0')}`;
           const dayTxns = appState.transactions.filter(t => t.transaction_date === dayStr);
@@ -2310,7 +2754,7 @@ ON CONFLICT (username) DO NOTHING;
           expenseData.push(exp);
         }
       } else {
-        const year = new Date().getFullYear();
+        const year = Number((currentMonthStr || '').slice(0, 4)) || new Date().getFullYear();
         const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         shortMonths.forEach((m, idx) => {
           labels.push(m);
@@ -2360,7 +2804,8 @@ ON CONFLICT (username) DO NOTHING;
       const catTotals = {};
 
       expenseTxns.forEach(t => {
-        catTotals[t.category_id] = (catTotals[t.category_id] || 0) + Number(t.amount);
+        const topId = getTopLevelCategoryId(t.category_id);
+        catTotals[topId] = (catTotals[topId] || 0) + Number(t.amount);
       });
 
       const labels = [];
@@ -2425,9 +2870,10 @@ ON CONFLICT (username) DO NOTHING;
 
       container.innerHTML = activeBudgets.map(b => {
         const cat = appState.categories.find(c => c.id === b.category_id) || { name: 'Kategori', color: '#6366f1' };
+        const budgetCatIds = getCategoryTreeIds(b.category_id);
         const used = thisMonthTxns
-          .filter(t => t.type === 'EXPENSE' && t.category_id === b.category_id)
-          .reduce((sum, t) => sum + Number(t.amount), 0);
+          .filter(t => t.type === 'EXPENSE' && budgetCatIds.includes(t.category_id))
+          .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
         const limit = Number(b.amount) || 1;
         const pct = Math.min(100, Math.round((used / limit) * 100));
         const isOver = used > limit;
@@ -2581,29 +3027,8 @@ ON CONFLICT (username) DO NOTHING;
     }
 
     function populateFilterDropdowns() {
-      const catSelect = document.getElementById('tx-filter-category');
-      const accSelect = document.getElementById('tx-filter-account');
-      const inpSelect = document.getElementById('tx-filter-inputter');
-
-      if (catSelect) {
-        catSelect.innerHTML = '<option value="ALL">All Categories</option>' +
-          appState.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-      }
-
-      if (accSelect) {
-        accSelect.innerHTML = '<option value="ALL">All Accounts</option>' +
-          appState.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-      }
-
-      if (inpSelect) {
-        const inputters = new Set();
-        inputters.add(getActiveUser());
-        appState.transactions.forEach(t => {
-          if (t.input_by) inputters.add(cleanUsername(t.input_by));
-        });
-        inpSelect.innerHTML = '<option value="ALL">Semua Penginput</option>' +
-          Array.from(inputters).map(u => `<option value="${u}">${u}</option>`).join('');
-      }
+      // Filter Penginput / Kategori / Akun sudah dihapus.
+      // Yang tersisa: pencarian, tipe (All/Expense/Income/Transfer), dan filter tanggal.
     }
 
     function debounceFilterTransactions() {
@@ -2685,7 +3110,8 @@ ON CONFLICT (username) DO NOTHING;
         filtered = filtered.filter(t => t.type === appState.txFilter.type);
       }
       if (appState.txFilter.category !== 'ALL') {
-        filtered = filtered.filter(t => t.category_id === appState.txFilter.category);
+        const filterCatIds = getCategoryTreeIds(appState.txFilter.category);
+        filtered = filtered.filter(t => filterCatIds.includes(t.category_id));
       }
       if (appState.txFilter.account !== 'ALL') {
         filtered = filtered.filter(t => t.account_id === appState.txFilter.account || t.to_account_id === appState.txFilter.account);
@@ -2710,6 +3136,18 @@ ON CONFLICT (username) DO NOTHING;
       filtered.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
       document.getElementById('tx-showing-count').textContent = `Showing ${filtered.length} of ${appState.transactions.length} transactions`;
 
+      lastFilteredTxIds = filtered.map(t => t.id);
+      const bulkActive = getBulkState('transactions').active;
+      updateBulkToggleBtn('transactions');
+      const bulkBarEl = document.getElementById('tx-bulk-bar');
+      if (bulkBarEl) bulkBarEl.innerHTML = bulkBarHtml('transactions');
+      const bulkTh = document.getElementById('tx-bulk-th');
+      if (bulkTh) {
+        bulkTh.classList.toggle('hidden', !bulkActive);
+        const bulkCb = bulkTh.querySelector('input');
+        if (bulkCb) bulkCb.checked = bulkActive && filtered.length > 0 && filtered.every(t => getBulkState('transactions').ids.has(t.id));
+      }
+
       if (filtered.length === 0) {
         const emptyHtml = `
           <div class="text-center py-12 px-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-400">
@@ -2718,7 +3156,7 @@ ON CONFLICT (username) DO NOTHING;
             <button onclick="openTransactionModal()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-sm active:scale-95 transition">Catat Transaksi Baru</button>
           </div>
         `;
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6">${emptyHtml}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${bulkActive ? 9 : 8}" class="p-6">${emptyHtml}</td></tr>`;
         mobileList.innerHTML = emptyHtml;
         lucide.createIcons();
         return;
@@ -2744,6 +3182,7 @@ ON CONFLICT (username) DO NOTHING;
 
         return `
           <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+            ${bulkActive ? `<td class="py-3 px-3">${bulkCheckboxHtml('transactions', tx.id)}</td>` : ''}
             <td class="py-3 px-4 font-mono text-slate-500 whitespace-nowrap">${tx.transaction_date}</td>
             <td class="py-3 px-4 whitespace-nowrap">${typeBadge}</td>
             <td class="py-3 px-4">
@@ -2791,6 +3230,7 @@ ON CONFLICT (username) DO NOTHING;
           <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-2.5 active:scale-[0.99] transition">
             <div class="flex items-start justify-between gap-2.5">
               <div class="flex items-center gap-2.5 min-w-0">
+                ${bulkActive ? bulkCheckboxHtml('transactions', tx.id) : ''}
                 <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center shrink-0">
                   <i data-lucide="${iconType}" class="w-5 h-5"></i>
                 </div>
@@ -2882,7 +3322,7 @@ ON CONFLICT (username) DO NOTHING;
       const toAcc = document.getElementById('tx-to-account');
 
       const cats = appState.categories.filter(c => c.type === type);
-      catSelect.innerHTML = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      catSelect.innerHTML = buildCategoryOptionsHtml(cats);
 
       const accOptions = appState.accounts.map(a => `<option value="${a.id}">${a.name} (${formatIDR(a.current_balance)})</option>`).join('');
       accSelect.innerHTML = accOptions;
@@ -3051,6 +3491,11 @@ ON CONFLICT (username) DO NOTHING;
       const grid = document.getElementById('accounts-cards-grid');
       if (!grid) return;
 
+      const bulkActive = getBulkState('accounts').active;
+      updateBulkToggleBtn('accounts');
+      const bulkBarEl = document.getElementById('account-bulk-bar');
+      if (bulkBarEl) bulkBarEl.innerHTML = bulkBarHtml('accounts');
+
       grid.innerHTML = appState.accounts.map(acc => {
         const txCount = appState.transactions.filter(t => t.account_id === acc.id || t.to_account_id === acc.id).length;
         const iconName = acc.type === 'Cash' ? 'wallet' : (acc.type === 'E-Wallet' ? 'smartphone' : (acc.type === 'Savings' ? 'piggy-bank' : 'landmark'));
@@ -3060,8 +3505,11 @@ ON CONFLICT (username) DO NOTHING;
           <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-indigo-400 transition">
             <div>
               <div class="flex items-center justify-between">
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                  <i data-lucide="${iconName}" class="w-5 h-5"></i>
+                <div class="flex items-center gap-2.5">
+                  ${bulkActive ? bulkCheckboxHtml('accounts', acc.id) : ''}
+                  <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                    <i data-lucide="${iconName}" class="w-5 h-5"></i>
+                  </div>
                 </div>
                 <div class="flex items-center gap-1.5">
                   ${inputBadge}
@@ -3178,6 +3626,18 @@ ON CONFLICT (username) DO NOTHING;
     }
 
     /* BUDGETS VIEW LOGIC */
+    const expandedBudgetGroups = new Set();
+
+    function toggleBudgetGroupCard(id) {
+      const container = document.getElementById('budget-group-subs-' + id);
+      const chevron = document.getElementById('budget-group-chevron-' + id);
+      if (!container) return;
+      const willExpand = container.classList.contains('hidden');
+      container.classList.toggle('hidden', !willExpand);
+      if (chevron) chevron.classList.toggle('rotate-90', willExpand);
+      if (willExpand) expandedBudgetGroups.add(id); else expandedBudgetGroups.delete(id);
+    }
+
     function renderBudgetsView() {
       const monthInput = document.getElementById('budget-month-selector');
       if (!monthInput.value) {
@@ -3192,8 +3652,11 @@ ON CONFLICT (username) DO NOTHING;
       const list = document.getElementById('budgets-category-list');
 
       const monthTxns = appState.transactions.filter(t => (t.transaction_date || '').startsWith(selectedMonth));
-      let totalBudget = 0;
-      let totalUsed = 0;
+
+      const bulkActive = getBulkState('budgets').active;
+      updateBulkToggleBtn('budgets');
+      const bulkBarEl = document.getElementById('budget-bulk-bar');
+      if (bulkBarEl) bulkBarEl.innerHTML = bulkBarHtml('budgets');
 
       if (activeBudgets.length === 0) {
         list.innerHTML = `
@@ -3211,15 +3674,21 @@ ON CONFLICT (username) DO NOTHING;
         return;
       }
 
-      list.innerHTML = activeBudgets.map(b => {
-        const cat = appState.categories.find(c => c.id === b.category_id) || { name: 'Custom Category', color: '#6366f1' };
-        const used = monthTxns
-          .filter(t => t.type === 'EXPENSE' && t.category_id === b.category_id)
-          .reduce((sum, t) => sum + Number(t.amount), 0);
-        const limit = Number(b.amount) || 1;
-        totalBudget += limit;
-        totalUsed += used;
+      const usedForCategory = (catId) => {
+        const ids = getCategoryTreeIds(catId);
+        return monthTxns
+          .filter(t => t.type === 'EXPENSE' && ids.includes(t.category_id))
+          .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+      };
 
+      const renderProgressBar = (pct, isOver, heightClass) => `
+            <div class="w-full ${heightClass} rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500 ${isOver ? 'bg-rose-500' : (pct > 80 ? 'bg-amber-500' : 'bg-indigo-600')}" style="width: ${pct}%"></div>
+            </div>`;
+
+      const renderStandaloneCard = (b, cat) => {
+        const used = usedForCategory(b.category_id);
+        const limit = Number(b.amount) || 1;
         const remaining = limit - used;
         const pct = Math.min(100, Math.round((used / limit) * 100));
         const isOver = used > limit;
@@ -3229,8 +3698,10 @@ ON CONFLICT (username) DO NOTHING;
           <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border ${isOver ? 'border-rose-400 dark:border-rose-800 bg-rose-50/20' : 'border-slate-200/80 dark:border-slate-800'} shadow-sm space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2.5">
+                ${bulkActive ? bulkCheckboxHtml('budgets', b.id) : ''}
                 <span class="w-3.5 h-3.5 rounded-full" style="background-color: ${cat.color}"></span>
                 <span class="font-bold text-sm text-slate-900 dark:text-white">${cat.name}</span>
+                ${isGroupCategory(b.category_id) ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">GRUP</span>' : ''}
                 ${inputBadge}
                 ${isOver ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white">OVER BUDGET</span>' : ''}
               </div>
@@ -3240,9 +3711,7 @@ ON CONFLICT (username) DO NOTHING;
               </div>
             </div>
 
-            <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-500 ${isOver ? 'bg-rose-500' : (pct > 80 ? 'bg-amber-500' : 'bg-indigo-600')}" style="width: ${pct}%"></div>
-            </div>
+            ${renderProgressBar(pct, isOver, 'h-3')}
 
             <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
               <span>Terpakai (${selectedMonth}): <strong class="text-slate-900 dark:text-white">${formatIDR(used)}</strong> (${pct}%)</span>
@@ -3251,7 +3720,146 @@ ON CONFLICT (username) DO NOTHING;
             </div>
           </div>
         `;
-      }).join('');
+      };
+
+      // Baris limit sub-kategori: tampil di dalam kartu grupnya.
+      const renderSubBudgetRow = (b, cat) => {
+        const used = usedForCategory(b.category_id);
+        const limit = Number(b.amount) || 1;
+        const remaining = limit - used;
+        const pct = Math.min(100, Math.round((used / limit) * 100));
+        const isOver = used > limit;
+        const inputBadge = getInputterBadge(b.input_by || getActiveUser());
+
+        return `
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border ${isOver ? 'border-rose-400/80 dark:border-rose-800' : 'border-slate-200/70 dark:border-slate-700/50'} space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                ${bulkActive ? bulkCheckboxHtml('budgets', b.id) : ''}
+                <span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${cat.color}"></span>
+                <span class="font-semibold text-xs text-slate-800 dark:text-slate-200 truncate">${cat.name}</span>
+                ${inputBadge}
+                ${isOver ? '<span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500 text-white shrink-0">OVER</span>' : ''}
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button onclick="editBudget('${b.id}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                <button onclick="promptDeleteBudget('${b.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </div>
+
+            ${renderProgressBar(pct, isOver, 'h-2')}
+
+            <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              <span>Terpakai: <strong class="text-slate-900 dark:text-white">${formatIDR(used)}</strong> (${pct}%)</span>
+              <span>Tersisa: <strong class="${remaining < 0 ? 'text-rose-600' : 'text-emerald-600'}">${formatIDR(remaining)}</strong></span>
+              <span>Limit: <strong class="text-slate-900 dark:text-white">${formatIDR(limit)}</strong></span>
+            </div>
+          </div>
+        `;
+      };
+
+      // Kartu grup: limitnya akumulasi dari limit grup sendiri + limit semua sub-kategorinya.
+      const renderGroupCard = (groupCat, ownBudget, subBudgets) => {
+        const subLimit = subBudgets.reduce((sum, b) => sum + (Number(b.amount) || 0), 0);
+        const groupLimit = (ownBudget ? (Number(ownBudget.amount) || 0) : 0) + subLimit;
+        const groupUsed = usedForCategory(groupCat.id);
+        const remaining = groupLimit - groupUsed;
+        const pct = groupLimit > 0 ? Math.min(100, Math.round((groupUsed / groupLimit) * 100)) : 0;
+        const isOver = groupUsed > groupLimit;
+        const hasSubs = subBudgets.length > 0;
+        const expanded = bulkActive || expandedBudgetGroups.has(groupCat.id);
+        const overBadge = isOver ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white shrink-0">OVER BUDGET</span>' : '';
+        const groupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shrink-0">GRUP${hasSubs ? ` · ${subBudgets.length} sub` : ''}</span>`;
+
+        return `
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border ${isOver ? 'border-rose-400 dark:border-rose-800 bg-rose-50/20' : 'border-slate-200/80 dark:border-slate-800'} shadow-sm space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              ${hasSubs ? `
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                  ${ownBudget ? bulkCheckboxHtml('budgets', ownBudget.id) : ''}
+                  <button type="button" onclick="toggleBudgetGroupCard('${groupCat.id}')" class="flex items-center gap-2.5 min-w-0 flex-1 text-left">
+                    <i data-lucide="chevron-right" id="budget-group-chevron-${groupCat.id}" class="w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}"></i>
+                    <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${groupCat.color}"></span>
+                    <span class="font-bold text-sm text-slate-900 dark:text-white truncate">${groupCat.name}</span>
+                    ${groupBadge}
+                    ${overBadge}
+                  </button>
+                </div>
+              ` : `
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                  ${ownBudget ? bulkCheckboxHtml('budgets', ownBudget.id) : ''}
+                  <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${groupCat.color}"></span>
+                  <span class="font-bold text-sm text-slate-900 dark:text-white truncate">${groupCat.name}</span>
+                  ${groupBadge}
+                  ${overBadge}
+                </div>
+              `}
+              <div class="flex items-center gap-1 shrink-0">
+                ${ownBudget ? `
+                  <button onclick="editBudget('${ownBudget.id}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white" title="Edit limit grup"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                  <button onclick="promptDeleteBudget('${ownBudget.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600" title="Hapus limit grup"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
+                ` : ''}
+              </div>
+            </div>
+
+            ${renderProgressBar(pct, isOver, 'h-3')}
+
+            <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <span>Terpakai (${selectedMonth}): <strong class="text-slate-900 dark:text-white">${formatIDR(groupUsed)}</strong> (${pct}%)</span>
+              <span>Tersisa: <strong class="${remaining < 0 ? 'text-rose-600' : 'text-emerald-600'}">${formatIDR(remaining)}</strong></span>
+              <span>Total Limit: <strong class="text-slate-900 dark:text-white">${formatIDR(groupLimit)}</strong></span>
+            </div>
+
+            ${hasSubs ? `
+              <div id="budget-group-subs-${groupCat.id}" class="pt-3 space-y-2 border-t border-slate-100 dark:border-slate-800/70 ${expanded ? '' : 'hidden'}">
+                ${subBudgets.map(b => {
+                  const cat = appState.categories.find(c => c.id === b.category_id) || { name: 'Custom Category', color: '#6366f1' };
+                  return renderSubBudgetRow(b, cat);
+                }).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      };
+
+      // Susun tampilan: limit sub tampil di bawah grupnya, sisanya kartu mandiri.
+      const budgetByCat = new Map();
+      activeBudgets.forEach(b => budgetByCat.set(b.category_id, b));
+
+      const renderedBudgetIds = new Set();
+      let cardsHtml = '';
+
+      appState.categories.filter(c => !c.parent_id).forEach(cat => {
+        const kids = getChildCategories(cat.id);
+        const ownBudget = budgetByCat.get(cat.id);
+        const subBudgets = kids.map(k => budgetByCat.get(k.id)).filter(Boolean);
+
+        if (kids.length > 0 && (ownBudget || subBudgets.length > 0)) {
+          if (ownBudget) renderedBudgetIds.add(ownBudget.id);
+          subBudgets.forEach(b => renderedBudgetIds.add(b.id));
+          cardsHtml += renderGroupCard(cat, ownBudget, subBudgets);
+        } else if (ownBudget) {
+          renderedBudgetIds.add(ownBudget.id);
+          cardsHtml += renderStandaloneCard(ownBudget, cat);
+        }
+      });
+
+      // Budget untuk kategori yang sudah terhapus / data lama tetap tampil agar bisa dibersihkan.
+      activeBudgets.forEach(b => {
+        if (renderedBudgetIds.has(b.id)) return;
+        const cat = appState.categories.find(c => c.id === b.category_id) || { name: 'Custom Category', color: '#6366f1' };
+        cardsHtml += renderStandaloneCard(b, cat);
+      });
+
+      list.innerHTML = cardsHtml;
+
+      // Ringkasan: used dihitung unik per kategori (grup + sub tidak dobel).
+      const totalBudget = activeBudgets.reduce((sum, b) => sum + (Number(b.amount) || 0), 0);
+      const coveredCatIds = new Set();
+      activeBudgets.forEach(b => getCategoryTreeIds(b.category_id).forEach(id => coveredCatIds.add(id)));
+      const totalUsed = monthTxns
+        .filter(t => t.type === 'EXPENSE' && coveredCatIds.has(t.category_id))
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
       document.getElementById('budget-summary-total').textContent = formatIDR(totalBudget);
       document.getElementById('budget-summary-used').textContent = formatIDR(totalUsed);
@@ -3268,15 +3876,14 @@ ON CONFLICT (username) DO NOTHING;
       const currentUser = getActiveUser();
       document.getElementById('budget-inputted-by').value = currentUser;
 
-      const catSelect = document.getElementById('budget-category');
-      const expenseCats = appState.categories.filter(c => c.type === 'EXPENSE');
-      catSelect.innerHTML = expenseCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      document.getElementById('budget-category-panel').classList.add('hidden');
+      setBudgetCategorySelection('');
 
       if (editId) {
         const b = appState.budgets.find(item => item.id === editId);
         if (b) {
           document.getElementById('budget-edit-id').value = b.id;
-          document.getElementById('budget-category').value = b.category_id;
+          setBudgetCategorySelection(b.category_id);
           document.getElementById('budget-amount').value = b.amount;
           document.getElementById('modal-budget-title').textContent = 'Edit Limit Kategori';
         }
@@ -3374,6 +3981,18 @@ ON CONFLICT (username) DO NOTHING;
     }
 
     /* CATEGORIES VIEW LOGIC */
+    const expandedCategoryGroups = new Set();
+
+    function toggleCategoryGroup(id) {
+      const container = document.getElementById('cat-children-' + id);
+      const chevron = document.getElementById('cat-chevron-' + id);
+      if (!container) return;
+      const willExpand = container.classList.contains('hidden');
+      container.classList.toggle('hidden', !willExpand);
+      if (chevron) chevron.classList.toggle('rotate-90', willExpand);
+      if (willExpand) expandedCategoryGroups.add(id); else expandedCategoryGroups.delete(id);
+    }
+
     function renderCategoriesView() {
       const expList = document.getElementById('categories-expense-list');
       const incList = document.getElementById('categories-income-list');
@@ -3381,21 +4000,65 @@ ON CONFLICT (username) DO NOTHING;
       const expCats = appState.categories.filter(c => c.type === 'EXPENSE');
       const incCats = appState.categories.filter(c => c.type === 'INCOME');
 
-      const renderCatItem = (c) => `
-        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/40 text-xs">
-          <div class="flex items-center gap-2.5">
+      const bulkActive = getBulkState('categories').active;
+      updateBulkToggleBtn('categories');
+      const bulkBarEl = document.getElementById('category-bulk-bar');
+      if (bulkBarEl) bulkBarEl.innerHTML = bulkBarHtml('categories');
+
+      const renderCatRow = (c, isChild = false) => `
+        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/40 text-xs ${isChild ? 'ml-4' : ''}">
+          <div class="flex items-center gap-2.5 min-w-0">
+            ${bulkActive ? bulkCheckboxHtml('categories', c.id) : ''}
             <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${c.color}"></span>
-            <span class="font-semibold text-slate-800 dark:text-slate-200">${c.name}</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-200 truncate">${c.name}</span>
           </div>
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-1 shrink-0">
             <button onclick="editCategory('${c.id}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
             <button onclick="promptDeleteCategory('${c.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
           </div>
         </div>
       `;
 
-      expList.innerHTML = expCats.map(renderCatItem).join('');
-      incList.innerHTML = incCats.map(renderCatItem).join('');
+      const renderColumn = (cats) => {
+        const topLevel = cats.filter(c => !c.parent_id);
+        const standalone = topLevel.filter(p => getChildCategories(p.id).length === 0);
+        const groups = topLevel.filter(p => getChildCategories(p.id).length > 0);
+
+        const standaloneHtml = standalone.map(c => renderCatRow(c)).join('');
+        const groupsHtml = groups.map(parent => {
+          const kids = getChildCategories(parent.id);
+          const expanded = bulkActive || expandedCategoryGroups.has(parent.id);
+          return `
+            <div class="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/40 overflow-hidden">
+              <div class="flex items-center justify-between p-3 text-xs gap-2">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                  ${bulkActive ? bulkCheckboxHtml('categories', parent.id) : ''}
+                  <button onclick="toggleCategoryGroup('${parent.id}')" class="flex items-center gap-2.5 min-w-0 flex-1 text-left">
+                    <i data-lucide="chevron-right" id="cat-chevron-${parent.id}" class="w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}"></i>
+                    <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${parent.color}"></span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200 truncate">${parent.name}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shrink-0">${kids.length} sub</span>
+                  </button>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <button onclick="editCategory('${parent.id}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                  <button onclick="promptDeleteCategory('${parent.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
+                </div>
+              </div>
+              <div id="cat-children-${parent.id}" class="px-3 pb-3 space-y-1.5 ${expanded ? '' : 'hidden'}">
+                ${kids.map(k => renderCatRow(k, true)).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        return standaloneHtml + groupsHtml;
+      };
+
+      const expHtml = renderColumn(expCats);
+      const incHtml = renderColumn(incCats);
+      expList.innerHTML = expHtml || '<p class="text-xs text-slate-400 p-2">Belum ada kategori pengeluaran.</p>';
+      incList.innerHTML = incHtml || '<p class="text-xs text-slate-400 p-2">Belum ada kategori pemasukan.</p>';
       lucide.createIcons();
     }
 
@@ -3412,9 +4075,35 @@ ON CONFLICT (username) DO NOTHING;
           document.getElementById('cat-name').value = c.name;
           document.getElementById('cat-type').value = c.type;
           document.getElementById('cat-color').value = c.color;
+          populateCategoryParentOptions(c.parent_id || null);
         }
+      } else {
+        populateCategoryParentOptions(null);
       }
       modal.classList.remove('hidden');
+    }
+
+    // Isi pilihan grup induk sesuai tipe kategori (2 level saja).
+    function populateCategoryParentOptions(selectedParentId = null) {
+      const parentSelect = document.getElementById('cat-parent');
+      if (!parentSelect) return;
+
+      const editId = document.getElementById('category-edit-id').value;
+      const type = document.getElementById('cat-type').value;
+      const editingCat = editId ? appState.categories.find(c => c.id === editId) : null;
+
+      // Grup yang sudah punya sub-kategori tidak bisa dipindah menjadi sub-kategori.
+      if (editingCat && isGroupCategory(editingCat.id)) {
+        parentSelect.innerHTML = '<option value="">— Kategori ini adalah grup utama —</option>';
+        parentSelect.disabled = true;
+        return;
+      }
+
+      parentSelect.disabled = false;
+      const candidates = appState.categories.filter(c => c.type === type && !c.parent_id && c.id !== editId);
+      parentSelect.innerHTML = '<option value="">— Tanpa grup (kategori utama) —</option>' +
+        candidates.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      if (selectedParentId) parentSelect.value = selectedParentId;
     }
 
     function closeCategoryModal() {
@@ -3427,8 +4116,24 @@ ON CONFLICT (username) DO NOTHING;
       const name = document.getElementById('cat-name').value.trim();
       const type = document.getElementById('cat-type').value;
       const color = document.getElementById('cat-color').value;
+      const parentId = document.getElementById('cat-parent')?.value || null;
+      const existing = editId ? appState.categories.find(c => c.id === editId) : null;
 
-      const catObj = { id: editId || 'cat-' + Date.now(), name, type, color };
+      if (existing && isGroupCategory(existing.id) && existing.type !== type) {
+        showToast('Grup yang punya sub-kategori tidak bisa ganti tipe. Pindahkan sub-kategorinya dulu.', 'error');
+        return;
+      }
+
+      if (parentId) {
+        const parent = appState.categories.find(c => c.id === parentId);
+        if (!parent || parent.parent_id || parent.type !== type || parent.id === editId) {
+          showToast('Grup induk tidak valid untuk kategori ini', 'error');
+          return;
+        }
+      }
+
+      const catObj = { id: editId || 'cat-' + Date.now(), name, type, color, parent_id: parentId };
+      if (existing && existing.icon) catObj.icon = existing.icon;
 
       if (editId) {
         const idx = appState.categories.findIndex(c => c.id === editId);
@@ -3438,7 +4143,7 @@ ON CONFLICT (username) DO NOTHING;
       }
 
       if (appState.supabase) {
-        try { await appState.supabase.from('categories').upsert(catObj); } catch (err) {}
+        try { await appState.supabase.from('categories').upsert(categoryCloudPayload(catObj)); } catch (err) {}
       }
 
       StorageService.saveLocal();
@@ -3450,14 +4155,29 @@ ON CONFLICT (username) DO NOTHING;
     function editCategory(id) { openCategoryModal(id); }
 
     function promptDeleteCategory(id) {
+      const children = getChildCategories(id);
+      const message = children.length > 0
+        ? `Kategori ini adalah grup dengan ${children.length} sub-kategori. Sub-kategori akan menjadi kategori mandiri (tidak ikut terhapus). Lanjutkan menghapus grup ini?`
+        : 'Apakah Anda yakin ingin menghapus kategori ini? Transaksi yang sudah menggunakan kategori ini tidak akan terhapus.';
+
       openConfirmModal(
         'Hapus Kategori',
-        'Apakah Anda yakin ingin menghapus kategori ini? Transaksi yang sudah menggunakan kategori ini tidak akan terhapus.',
+        message,
         async () => {
+          const childIds = children.map(c => c.id);
+          appState.categories.forEach(c => { if (c.parent_id === id) c.parent_id = null; });
           appState.categories = appState.categories.filter(c => c.id !== id);
+
           if (appState.supabase) {
-            try { await appState.supabase.from('categories').delete().eq('id', id); } catch (e) {}
+            try {
+              if (childIds.length > 0) {
+                const payload = appState.categories.filter(c => childIds.includes(c.id)).map(categoryCloudPayload);
+                await appState.supabase.from('categories').upsert(payload);
+              }
+              await appState.supabase.from('categories').delete().eq('id', id);
+            } catch (e) {}
           }
+
           StorageService.saveLocal();
           showToast('Kategori berhasil dihapus', 'success');
           renderCurrentView();
@@ -3509,7 +4229,8 @@ ON CONFLICT (username) DO NOTHING;
 
       const catExpenseMap = {};
       appState.transactions.filter(t => t.type === 'EXPENSE').forEach(t => {
-        catExpenseMap[t.category_id] = (catExpenseMap[t.category_id] || 0) + Number(t.amount);
+        const topId = getTopLevelCategoryId(t.category_id);
+        catExpenseMap[topId] = (catExpenseMap[topId] || 0) + Number(t.amount);
       });
       let topCatId = null;
       let topCatAmt = 0;
@@ -3577,8 +4298,15 @@ ON CONFLICT (username) DO NOTHING;
       const tbody = document.getElementById('recurring-table-body');
       if (!tbody) return;
 
+      const bulkActive = getBulkState('recurring').active;
+      updateBulkToggleBtn('recurring');
+      const bulkBarEl = document.getElementById('recurring-bulk-bar');
+      if (bulkBarEl) bulkBarEl.innerHTML = bulkBarHtml('recurring');
+      const bulkTh = document.getElementById('recurring-bulk-th');
+      if (bulkTh) bulkTh.classList.toggle('hidden', !bulkActive);
+
       if (appState.recurring.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-10 text-slate-400 text-xs">Belum ada tagihan berulang tersimpan.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${bulkActive ? 10 : 9}" class="text-center py-10 text-slate-400 text-xs">Belum ada tagihan berulang tersimpan.</td></tr>`;
         return;
       }
 
@@ -3589,6 +4317,7 @@ ON CONFLICT (username) DO NOTHING;
 
         return `
           <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+            ${bulkActive ? `<td class="py-3 px-3">${bulkCheckboxHtml('recurring', r.id)}</td>` : ''}
             <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">${r.name}</td>
             <td class="py-3 px-4">${inputBadge}</td>
             <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${r.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">${r.type}</span></td>
@@ -3619,7 +4348,7 @@ ON CONFLICT (username) DO NOTHING;
 
       const catSelect = document.getElementById('rec-category');
       const accSelect = document.getElementById('rec-account');
-      catSelect.innerHTML = appState.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      catSelect.innerHTML = buildCategoryOptionsHtml(appState.categories);
       accSelect.innerHTML = appState.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
 
       const currentUser = getActiveUser();
@@ -3700,6 +4429,7 @@ ON CONFLICT (username) DO NOTHING;
 
       const txRows = appState.transactions.map(t => {
         const cat = appState.categories.find(c => c.id === t.category_id);
+        const topCat = cat && cat.parent_id ? appState.categories.find(c => c.id === cat.parent_id) : null;
         const acc = appState.accounts.find(a => a.id === t.account_id);
         const toAcc = t.to_account_id ? appState.accounts.find(a => a.id === t.to_account_id) : null;
         return {
@@ -3709,6 +4439,7 @@ ON CONFLICT (username) DO NOTHING;
           'Amount': t.amount,
           'Description': t.description,
           'Category': cat ? cat.name : (t.type === 'TRANSFER' ? 'Transfer' : '-'),
+          'Group': topCat ? topCat.name : '',
           'Account': acc ? acc.name : '-',
           'To Account': toAcc ? toAcc.name : '-'
         };
@@ -3718,7 +4449,8 @@ ON CONFLICT (username) DO NOTHING;
 
       const catSummary = {};
       appState.transactions.filter(t => t.type === 'EXPENSE').forEach(t => {
-        const catName = appState.categories.find(c => c.id === t.category_id)?.name || 'Other';
+        const topId = getTopLevelCategoryId(t.category_id);
+        const catName = appState.categories.find(c => c.id === topId)?.name || 'Other';
         catSummary[catName] = (catSummary[catName] || 0) + Number(t.amount);
       });
       const catRows = Object.keys(catSummary).map(k => ({ 'Category': k, 'Total Expense': catSummary[k] }));
@@ -4060,6 +4792,14 @@ ON CONFLICT (username) DO NOTHING;
       checkAuthSession();
       initIdleTracker();
       handleDatePresetChange('THIS_MONTH');
+
+      // Tutup dropdown kategori budget saat klik di luar komponennya
+      document.addEventListener('click', (e) => {
+        const wrapper = document.getElementById('budget-category-dropdown');
+        const panel = document.getElementById('budget-category-panel');
+        if (!wrapper || !panel || panel.classList.contains('hidden')) return;
+        if (!wrapper.contains(e.target)) panel.classList.add('hidden');
+      });
 
       navigateTo('dashboard');
       lucide.createIcons();
